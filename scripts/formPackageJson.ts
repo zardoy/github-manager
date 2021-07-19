@@ -21,6 +21,11 @@ type ContributedCommand = Record<'category' | 'command' | 'title', string>;
             json.activationEvents = allCommands.map(command => `onCommand:${command}`);
         }
 
+        json.engines = {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            vscode: `^${require('@types/vscode/package.json').version}`
+        };
+
         return json;
     });
 })();

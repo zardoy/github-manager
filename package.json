@@ -4,6 +4,9 @@
     "displayName": "GitHub Manager",
     "description": "Quickly switch between cloned GitHub repos",
     "version": "0.0.1",
+    "files": [
+        "out"
+    ],
     "categories": [
         "Other"
     ],
@@ -46,17 +49,16 @@
         "watch": "tsc -watch -p ./tsconfig.build.json",
         "pretest": "yarn run compile && yarn run lint",
         "test": "node ./out/test/runTest.js",
-        "vscode:prepublish": "yarn run compile"
+        "vscode:prepublish": "yarn update-package-json && yarn compile"
     },
     "devDependencies": {
         "@types/glob": "^7.1.4",
-        "@types/jsonfile": "^6.0.1",
         "@types/lodash": "^4.14.171",
         "@types/mocha": "^8.2.3",
         "@types/node": "16.3.3",
         "@types/react": "^17.0.14",
         "@types/react-dom": "^17.0.9",
-        "@types/vscode": "^1.58.1",
+        "@types/vscode": "^1.58.0",
         "glob": "^7.1.7",
         "mocha": "^9.0.2",
         "modify-json-file": "^1.1.0",
@@ -72,7 +74,6 @@
         "acorn-walk": "^8.1.1",
         "find-up": "^5.0.0",
         "git-remote-origin-url": "^3.1.0",
-        "jsonfile": "^6.1.0",
         "lodash": "^4.17.21",
         "nanoid": "^3.1.23",
         "react": "^17.0.2",
@@ -80,7 +81,7 @@
         "read-pkg": "^6.0.0"
     },
     "engines": {
-        "vscode": "^1.58.0"
+        "vscode": "^1.58.1"
     },
     "license": "MIT",
     "main": "./out/index.js",
