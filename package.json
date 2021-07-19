@@ -1,0 +1,88 @@
+{
+    "name": "github-manager",
+    "publisher": "zardoy",
+    "displayName": "GitHub Manager",
+    "description": "Quickly switch between cloned GitHub repos",
+    "version": "0.0.1",
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "git",
+        "folder",
+        "local",
+        "switch",
+        "open"
+    ],
+    "activationEvents": [
+        "onCommand:github-manager.show-github-repos",
+        "onCommand:github-manager.show-non-git-dirs",
+        "onCommand:github-manager.show-non-remote-repos"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "category": "GitHub Manager",
+                "command": "github-manager.show-github-repos",
+                "title": "Show Cloned GitHub Repositories"
+            },
+            {
+                "category": "GitHub Manager",
+                "command": "github-manager.show-non-git-dirs",
+                "title": "Show Non-Git Directories"
+            },
+            {
+                "category": "GitHub Manager",
+                "command": "github-manager.show-non-remote-repos",
+                "title": "Show Non-Remote Repositories"
+            }
+        ]
+    },
+    "scripts": {
+        "lint": "xo src",
+        "lint:fix": "xo src --fix",
+        "update-package-json": "ts-node scripts/formPackageJson.ts",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./tsconfig.build.json",
+        "pretest": "yarn run compile && yarn run lint",
+        "test": "node ./out/test/runTest.js",
+        "vscode:prepublish": "yarn run compile"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.1.4",
+        "@types/jsonfile": "^6.0.1",
+        "@types/lodash": "^4.14.171",
+        "@types/mocha": "^8.2.3",
+        "@types/node": "16.3.3",
+        "@types/react": "^17.0.14",
+        "@types/react-dom": "^17.0.9",
+        "@types/vscode": "^1.58.1",
+        "glob": "^7.1.7",
+        "mocha": "^9.0.2",
+        "modify-json-file": "^1.1.0",
+        "type-fest": "^1.2.2",
+        "typescript": "^4.3.5",
+        "vscode-test": "^1.6.1",
+        "xo": "0.39.1"
+    },
+    "dependencies": {
+        "@octokit/rest": "^18.6.7",
+        "@zardoy/tsconfig": "^1.1.0",
+        "acorn": "^8.4.1",
+        "acorn-walk": "^8.1.1",
+        "find-up": "^5.0.0",
+        "git-remote-origin-url": "^3.1.0",
+        "jsonfile": "^6.1.0",
+        "lodash": "^4.17.21",
+        "nanoid": "^3.1.23",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "read-pkg": "^6.0.0"
+    },
+    "engines": {
+        "vscode": "^1.58.0"
+    },
+    "license": "MIT",
+    "main": "./out/index.js",
+    "qna": false
+}
