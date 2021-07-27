@@ -2,11 +2,11 @@
 
 > Note: ensure that global VSCode setting `git.defaultCloneDirectory` points to the directory with your GitHub repos
 
-Quickly switch between cloned GitHub repos. It's something like, [Project Manager extension](https://marketplace.visualstudio.com/items?itemName=alefragnani.project-manager), but this extension aims to provide **only** GitHub projects with `owner/name` format with the main command **Show Cloned GitHub Repositories** (show-github-dirs). Just compare:
+Quickly switch between cloned GitHub repos. It's something like, [Project Manager extension](https://marketplace.visualstudio.com/items?itemName=alefragnani.project-manager), but this extension aims to provide **only** GitHub projects with `owner/name` format with the main command **Show Cloned GitHub Repositories** (show-github-dirs). Here is how it look likes:
 
-[PASTE GIF]
+![demo](media/demo-main-command.png)
 
-> Note: this command doesn't use GitHub API to get actual `owner/name` data, they're just extracted from the *origin* remote. If you know that some of your repositories were renamed (or their ownership were changed) use [rename-repos](https://github.com/zardoy/rename-repos)'s *script*. It also means it won't display non-GitHub repos.
+> Note: this command doesn't use GitHub API to get actual `owner/name` data, they're just extracted from the *origin* remote of each directory from `git.defaultCloneDirectory` path. If you know that some of your repositories were renamed (or their ownership were changed) use [rename-repos](https://github.com/zardoy/rename-repos)'s *script*. It also means it won't display non-GitHub repos.
 
 I primarily needed this extension not only because I work only with GitHub repositories, but also because with this extension it is easily to see forks / travel between them. (forks view are coming soon)
 
