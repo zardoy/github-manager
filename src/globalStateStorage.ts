@@ -4,7 +4,7 @@ import vscode from 'vscode';
 
 export class ExtensionGlobalStorage<T extends Record<string, any>> {
     constructor(
-        private readonly extensionContext: Pick<vscode.ExtensionContext, 'globalState'>
+        private readonly extensionContext: Pick<vscode.ExtensionContext, 'globalState'>,
     ) {}
 
     get<K extends keyof T>(key: K): T[K] | undefined {
