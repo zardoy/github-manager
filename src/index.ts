@@ -1,4 +1,4 @@
-import path from 'node:path';
+import path from 'path';
 import vscode from 'vscode';
 import _ from 'lodash';
 import { registerCommand } from './commands/registerCommand';

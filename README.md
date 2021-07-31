@@ -4,7 +4,7 @@
 
 Quickly switch between cloned GitHub repos. It's something like, [Project Manager extension](https://marketplace.visualstudio.com/items?itemName=alefragnani.project-manager), but this extension aims to provide **only** GitHub projects with `owner/name` format with the main command **Show Cloned GitHub Repositories** (show-github-dirs). Here is how it look likes:
 
-![demo](media/demo-main-command.png)
+<!-- ![demo](media/demo-main-command.png) -->
 
 > Note: this command doesn't use GitHub API to get actual `owner/name` data, they're just extracted from the *origin* remote of each directory from `git.defaultCloneDirectory` path. If you know that some of your repositories were renamed (or their ownership were changed) use [rename-repos](https://github.com/zardoy/rename-repos)'s *script*. It also means it won't display non-GitHub repos.
 

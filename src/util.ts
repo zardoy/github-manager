@@ -1,6 +1,6 @@
-import { URL } from 'node:url';
-import fs from 'node:fs';
-import path from 'node:path';
+import { URL } from 'url';
+import fs from 'fs';
+import path from 'path';
 import remoteOrigin from 'git-remote-origin-url';
 
 // actually copy-pasted from zardoy/rename-repos/src/common.ts

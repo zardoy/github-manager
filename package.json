@@ -42,14 +42,14 @@
         ]
     },
     "scripts": {
-        "lint": "xo src",
-        "lint:fix": "xo src --fix",
-        "update-package-json": "ts-node scripts/formPackageJson.ts",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./tsconfig.build.json",
+        "watch": "node esbuild.mjs dev",
+        "compile": "node esbuild.mjs prod",
         "pretest": "yarn run compile && yarn run lint",
         "test": "node ./out/test/runTest.js",
-        "vscode:prepublish": "yarn update-package-json && yarn compile"
+        "vscode:prepublish": "tsc && yarn update-package-json && yarn compile",
+        "update-package-json": "ts-node scripts/formPackageJson.ts",
+        "lint": "xo src",
+        "lint:fix": "xo src --fix"
     },
     "devDependencies": {
         "@types/glob": "^7.1.4",
@@ -59,13 +59,14 @@
         "@types/react": "^17.0.14",
         "@types/react-dom": "^17.0.9",
         "@types/vscode": "^1.58.0",
+        "@zardoy/xo-config": "^0.0.2",
+        "esbuild": "^0.12.17",
         "glob": "^7.1.7",
         "mocha": "^9.0.2",
         "modify-json-file": "^1.1.0",
         "type-fest": "^1.2.2",
         "typescript": "^4.3.5",
         "vscode-test": "^1.6.1",
-        "@zardoy/xo-config": "^0.0.2",
         "xo": "^0.42.0"
     },
     "dependencies": {
@@ -85,6 +86,7 @@
         "vscode": "^1.58.1"
     },
     "license": "MIT",
-    "main": "./out/index.js",
-    "qna": false
+    "main": "out.js",
+    "qna": false,
+    "repository": "https://github.com/zardoy/github-manager"
 }
