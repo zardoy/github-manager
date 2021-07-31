@@ -1,24 +1,24 @@
 export const commands = {
     regular: [
         {
-            command: 'show-github-repos',
-            title: 'Show Cloned GitHub Repositories',
+            command: 'open-github-repos',
+            title: 'Open Cloned GitHub Repository',
         },
         // {
-        //     command: 'show-github-forked-repos',
-        //     title: 'Show Forked Cloned GitHub Repositories'
+        //     command: 'open-github-forked-repos',
+        //     title: 'Open Forked Cloned GitHub Repository'
         // },
         {
-            command: 'show-non-git-dirs',
-            title: 'Show Non-Git Directories',
+            command: 'open-non-git-dirs',
+            title: 'Open Non-Git Directory',
         },
         {
-            command: 'show-non-remote-repos',
-            title: 'Show Non-Remote Repositories',
+            command: 'open-non-remote-repos',
+            title: 'Open Non-Remote Repository',
         },
         // {
-        //     command: 'show-non-github-repos',
-        //     title: 'Show Non-GitHub Repositories'
+        //     command: 'open-non-github-repos',
+        //     title: 'Open Non-GitHub Repository'
         // },
     ],
 } as const;

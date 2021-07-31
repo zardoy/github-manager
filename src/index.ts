@@ -45,7 +45,7 @@ const getGithubRepos = async () => {
 };
 
 export async function activate() {
-    registerCommand('show-github-repos', async () => {
+    registerCommand('open-github-repos', async () => {
         console.time('Show repos');
         const repos = await getGithubRepos();
 
@@ -67,7 +67,7 @@ export async function activate() {
         await vscode.commands.executeCommand('vscode.openFolder', folderUri);
     });
     // repo-forked
-    registerCommand('show-non-git-dirs', async () => {
+    registerCommand('open-non-git-dirs', async () => {
         const gitDefaultDir = getReposDir();
 
         const { nonGit: nonGitDirs } = await getDirsFromCwd(gitDefaultDir);
@@ -87,7 +87,7 @@ export async function activate() {
         const folderUri = vscode.Uri.file(path.join(gitDefaultDir, nonGitDirs[selectionIndex]));
         await vscode.commands.executeCommand('vscode.openFolder', folderUri);
     });
-    registerCommand('show-non-remote-repos', async () => {
+    registerCommand('open-non-remote-repos', async () => {
         const gitDefaultDir = getReposDir();
 
         const { git: gitDirs } = await getDirsFromCwd(gitDefaultDir);

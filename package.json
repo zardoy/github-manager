@@ -18,26 +18,26 @@
         "open"
     ],
     "activationEvents": [
-        "onCommand:github-manager.show-github-repos",
-        "onCommand:github-manager.show-non-git-dirs",
-        "onCommand:github-manager.show-non-remote-repos"
+        "onCommand:github-manager.open-github-repos",
+        "onCommand:github-manager.open-non-git-dirs",
+        "onCommand:github-manager.open-non-remote-repos"
     ],
     "contributes": {
         "commands": [
             {
                 "category": "GitHub Manager",
-                "command": "github-manager.show-github-repos",
-                "title": "Show Cloned GitHub Repositories"
+                "command": "github-manager.open-github-repos",
+                "title": "Open Cloned GitHub Repository"
             },
             {
                 "category": "GitHub Manager",
-                "command": "github-manager.show-non-git-dirs",
-                "title": "Show Non-Git Directories"
+                "command": "github-manager.open-non-git-dirs",
+                "title": "Open Non-Git Directory"
             },
             {
                 "category": "GitHub Manager",
-                "command": "github-manager.show-non-remote-repos",
-                "title": "Show Non-Remote Repositories"
+                "command": "github-manager.open-non-remote-repos",
+                "title": "Open Non-Remote Repository"
             }
         ]
     },
