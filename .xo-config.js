@@ -1,1 +1,1 @@
-module.exports = require("@zardoy/xo-config")
+module.exports = require("@zardoy/xo-config")();

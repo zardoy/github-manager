@@ -1,8 +1,8 @@
-import path from 'path';
+import path from 'node:path';
 import vscode from 'vscode';
 import _ from 'lodash';
-import { getDirsFromCwd, getGithubRemoteInfo } from './util';
 import { CommandRegisterer } from '@zardoy/vscode-tools';
+import { getDirsFromCwd, getGithubRemoteInfo } from './util';
 import { commands } from './commands';
 
 // TODO @critical no-floating-promises doesn't work
@@ -15,9 +15,8 @@ interface Repo {
 
 function getReposDir() {
     const gitDefaultDir: string | undefined | null = vscode.workspace.getConfiguration('git').get('defaultCloneDirectory');
-    if (!gitDefaultDir) {
+    if (!gitDefaultDir)
         throw new Error('Ensure that git.defaultCloneDirectory setting is pointing to directory with your GitHub repos');
-    }
 
     return gitDefaultDir;
 }
@@ -31,9 +30,7 @@ const getGithubRepos = async () => {
     );
     const reposWithGithubInfo = dirsOriginInfo
         .map((state, index): Repo | undefined => {
-            if (state.status === 'fulfilled') {
-                return state.value ? { ...state.value, dirPath: path.join(gitDefaultDir, gitDirs[index]) } : undefined;
-            }
+            if (state.status === 'fulfilled') return state.value ? { ...state.value, dirPath: path.join(gitDefaultDir, gitDirs[index]) } : undefined;
 
             return undefined;
         })
@@ -46,27 +43,22 @@ const getGithubRepos = async () => {
 };
 
 export async function activate(ctx) {
-    const outputChannel = vscode.window.createOutputChannel("TESTING")
-    console.log = (...args) => outputChannel.appendLine(JSON.stringify(args));
-    
     const commandRegisterer = new CommandRegisterer(commands, ctx);
-    
+
     commandRegisterer.registerCommand('open-github-repos', async () => {
-        console.time("Show selections")
+        console.time('Show selections');
         const repos = await getGithubRepos();
 
         const items: vscode.QuickPickItem[] = repos.map(({ owner, name }) => ({
             label: `$(github-inverted) ${owner}/${name}`,
         }));
 
-        console.timeEnd("Show selections")
+        console.timeEnd('Show selections');
         const selection = await vscode.window.showQuickPick<vscode.QuickPickItem>(items, {
             placeHolder: 'Select repository to select',
             matchOnDescription: true,
         });
-        if (!selection) {
-            return;
-        }
+        if (!selection) return;
 
         const selectionIndex = items.indexOf(selection);
         const folderUri = vscode.Uri.file(repos[selectionIndex].dirPath);
@@ -85,9 +77,7 @@ export async function activate(ctx) {
             placeHolder: 'Select non-git directory to open',
             matchOnDescription: true,
         });
-        if (!selection) {
-            return;
-        }
+        if (!selection) return;
 
         const selectionIndex = items.indexOf(selection);
         const folderUri = vscode.Uri.file(path.join(gitDefaultDir, nonGitDirs[selectionIndex]));
@@ -111,9 +101,7 @@ export async function activate(ctx) {
             placeHolder: 'Select non-remote git directory to open',
             matchOnDescription: true,
         });
-        if (!selection) {
-            return;
-        }
+        if (!selection) return;
 
         const selectionIndex = items.indexOf(selection);
         const folderUri = vscode.Uri.file(path.join(gitDefaultDir, reposWithoutRemote[selectionIndex]));
