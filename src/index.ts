@@ -1,8 +1,9 @@
 import path from 'path';
 import vscode from 'vscode';
 import _ from 'lodash';
-import { registerCommand } from './commands/registerCommand';
 import { getDirsFromCwd, getGithubRemoteInfo } from './util';
+import { CommandRegisterer } from '@zardoy/vscode-tools';
+import { commands } from './commands';
 
 // TODO @critical no-floating-promises doesn't work
 
@@ -15,7 +16,7 @@ interface Repo {
 function getReposDir() {
     const gitDefaultDir: string | undefined | null = vscode.workspace.getConfiguration('git').get('defaultCloneDirectory');
     if (!gitDefaultDir) {
-        throw new Error('Ensure that git.defaultCloneDirectory setting is set to directory with your GitHub repos');
+        throw new Error('Ensure that git.defaultCloneDirectory setting is pointing to directory with your GitHub repos');
     }
 
     return gitDefaultDir;
@@ -44,18 +45,23 @@ const getGithubRepos = async () => {
     return sortedRepos;
 };
 
-export async function activate() {
-    registerCommand('open-github-repos', async () => {
-        console.time('Show repos');
+export async function activate(ctx) {
+    const outputChannel = vscode.window.createOutputChannel("TESTING")
+    console.log = (...args) => outputChannel.appendLine(JSON.stringify(args));
+    
+    const commandRegisterer = new CommandRegisterer(commands, ctx);
+    
+    commandRegisterer.registerCommand('open-github-repos', async () => {
+        console.time("Show selections")
         const repos = await getGithubRepos();
 
         const items: vscode.QuickPickItem[] = repos.map(({ owner, name }) => ({
             label: `$(github-inverted) ${owner}/${name}`,
         }));
 
-        console.timeEnd('Show repos');
+        console.timeEnd("Show selections")
         const selection = await vscode.window.showQuickPick<vscode.QuickPickItem>(items, {
-            placeHolder: 'Select repository to open',
+            placeHolder: 'Select repository to select',
             matchOnDescription: true,
         });
         if (!selection) {
@@ -67,7 +73,7 @@ export async function activate() {
         await vscode.commands.executeCommand('vscode.openFolder', folderUri);
     });
     // repo-forked
-    registerCommand('open-non-git-dirs', async () => {
+    commandRegisterer.registerCommand('open-non-git-dirs', async () => {
         const gitDefaultDir = getReposDir();
 
         const { nonGit: nonGitDirs } = await getDirsFromCwd(gitDefaultDir);
@@ -87,7 +93,7 @@ export async function activate() {
         const folderUri = vscode.Uri.file(path.join(gitDefaultDir, nonGitDirs[selectionIndex]));
         await vscode.commands.executeCommand('vscode.openFolder', folderUri);
     });
-    registerCommand('open-non-remote-repos', async () => {
+    commandRegisterer.registerCommand('open-non-remote-repos', async () => {
         const gitDefaultDir = getReposDir();
 
         const { git: gitDirs } = await getDirsFromCwd(gitDefaultDir);
