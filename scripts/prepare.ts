@@ -4,4 +4,4 @@ import { commands } from '../src/commands';
 updatePackageJson({
     commands,
     where: 'original',
-}).catch(console.error);
+}).catch(() => process.exit(1));
