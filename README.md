@@ -12,6 +12,10 @@ I primarily needed this extension not only because I work only with GitHub repos
 
 Of course, Project Manager is a more comprehensive extension for working with git dirs (tags, bookmarks and so on...)
 
+## How to Install
+
+[Download VSIX](https://github.com/zardoy/github-manager/releases/latest/download/github-manager-0.0.1.vsix) and drop it to the VSCode.
+
 ## Additional Commands
 
 <!-- TODO rephrase -->
