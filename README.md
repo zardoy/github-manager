@@ -12,10 +12,10 @@ I primarily needed this extension not only because I work only with GitHub repos
 
 Of course, Project Manager is a more comprehensive extension for working with git dirs (tags, bookmarks and so on...)
 
-## Bonus Commands
+## Additional Commands
 
 <!-- TODO rephrase -->
-> Note: All commands don't cache anything, so their lists would always be in sync with your directories. If you feel that some of the commands are slow, open an issue.
+> Note: All commands don't cache anything, so their lists would always be in sync with your directories.
 
 ### Show Non-Git Directories (show-non-git-dirs)
 
@@ -39,3 +39,10 @@ These fields in `package.json` are generated automatically, do not edit them:
 
 - `contributes.commands`
 - `activationEvents` – do not edit `command` events
+
+## TODO
+
+### Add settings
+
+- [ ] ignore: users, directory pattern
+- [ ] custom repository render template? (I don't really need it)
