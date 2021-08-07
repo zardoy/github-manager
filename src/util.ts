@@ -1,50 +1,68 @@
-import { URL } from 'url';
-import fs from 'fs';
 import path from 'path';
-import remoteOrigin from 'git-remote-origin-url';
+import { getGithubRemoteInfo } from 'github-remote-info';
+import _ from 'lodash';
+import vscode from 'vscode';
+import { getDirsFromCwd } from './utils/git';
 
 // actually copy-pasted from zardoy/rename-repos/src/common.ts
 
-// can we improve performance or is it good enough?
-export const getDirsFromCwd = async (cwd: string) => {
-    const dirs: Record<'git' | 'nonGit', string[]> = { git: [], nonGit: [] };
-    const dirsList = await fs.promises.readdir(cwd);
-    for (const dirName of dirsList) {
-        if (!fs.lstatSync(path.join(cwd, dirName)).isDirectory()) continue;
+export const getWhereToOpen = (): string => vscode.workspace.getConfiguration('github-manager').get('whereToOpen')!;
 
-        const gitPath = path.join(cwd, dirName, '.git');
-        const isGitDir = fs.existsSync(gitPath) && fs.lstatSync(gitPath).isDirectory();
-        (isGitDir ? dirs.git : dirs.nonGit).push(dirName);
+export interface GithubRepo {
+    owner: string;
+    name: string;
+    /** Relative directory path from defaultCloneDirectory */
+    dirPath: string;
+}
+
+export function getReposDir() {
+    const gitDefaultDir: string | undefined | null = vscode.workspace.getConfiguration('git').get('defaultCloneDirectory');
+    if (!gitDefaultDir)
+        throw new Error('Ensure that git.defaultCloneDirectory setting is pointing to directory with your GitHub repos');
+
+    return gitDefaultDir;
+}
+
+export const getGithubRepos = async () => {
+    try {
+        console.time('Show selections');
+        const gitDefaultDir = getReposDir();
+
+        const { git: gitDirs } = await getDirsFromCwd(gitDefaultDir);
+        const dirsOriginInfo = await Promise.allSettled(
+            gitDirs.map(async dir => getGithubRemoteInfo(path.join(gitDefaultDir, dir))),
+        );
+        const reposWithGithubInfo = dirsOriginInfo
+            .map((state, index): GithubRepo | undefined => {
+                if (state.status === 'fulfilled') return state.value ? { ...state.value, dirPath: gitDirs[index] } : undefined;
+
+                return undefined;
+            })
+            .filter(Boolean) as GithubRepo[];
+        const ownerCountMap = _.countBy(reposWithGithubInfo, r => r.owner);
+        // TODO sort also by name
+        const sortedRepos = _.sortBy(reposWithGithubInfo, r => ownerCountMap[r.owner]).reverse();
+
+        return sortedRepos;
+    } finally {
+        console.timeEnd('Show selections');
     }
-
-    return dirs;
 };
 
-export const getGithubRemoteInfo = async (repoRootPath: string): Promise<Record<'owner' | 'name', string> | undefined> => {
-    let originUrl: undefined | string;
-    try {
-        try {
-            originUrl = await remoteOrigin(repoRootPath);
-        } catch (error) {
-            if (error.message.startsWith('Couldn\'t find')) originUrl = undefined;
-            else throw error;
-        }
+export const openSelectedDirectory = async (dirPath: GithubRepo['dirPath'], forceOpenNewWindow?: boolean) => {
+    const gitDefaultDir = getReposDir();
 
-        if (!originUrl) return;
+    const whereToOpen = getWhereToOpen();
 
-        const gitMatch = /git@github.com:(?<owner>\w+)\/(?<name>.+)(.git)/.exec(originUrl);
-        if (gitMatch)
-            return gitMatch.groups! as any;
+    const folderUri = vscode.Uri.file(path.join(gitDefaultDir, dirPath));
+    const forceNewWindow = (() => {
+        if (forceOpenNewWindow !== undefined) return forceOpenNewWindow;
+        if (whereToOpen === 'alwaysSameWindow') return false;
+        if (whereToOpen === 'newWindowIfNotEmpty') return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
+        return false;
+    })();
 
-        const url = new URL(originUrl);
-        if (url.hostname !== 'github.com') throw new Error(`Unknown host ${url.hostname}`);
-
-        let [, owner, name] = url.pathname.split('/');
-        if (name.endsWith('.git'))
-            name = name.slice(0, -'.git'.length);
-
-        return { owner, name };
-    } catch (error) {
-        throw new Error(`${error.message} Error occured in ${repoRootPath} with remote origin ${originUrl!}`);
-    }
+    await vscode.commands.executeCommand('vscode.openFolder', folderUri, {
+        forceNewWindow,
+    });
 };
