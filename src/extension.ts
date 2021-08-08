@@ -14,22 +14,20 @@ import { getDirsFromCwd } from './utils/git';
 export async function activate(ctx: vscode.ExtensionContext) {
     const framework = new VscodeFramework(commands, ctx);
 
-    framework.registerCommand('open-github-repos', async () => {
-        return openNewDirectory({
-            getDirectories: async () => {
-                const repos = await getGithubRepos();
+    framework.registerCommand('open-github-repos', async () => openNewDirectory({
+        getDirectories: async () => {
+            const repos = await getGithubRepos();
 
-                const items: Array<VSCodeQuickPickItem<string>> = repos.map(({ owner, name, dirPath }) => ({
-                    label: `$(github-inverted) ${owner}/${name}`,
-                    value: dirPath,
-                }));
-                return items;
-            },
-            quickPickOptions: {
-                placeHolder: 'Select repository to open',
-            },
-        });
-    });
+            const items: Array<VSCodeQuickPickItem<string>> = repos.map(({ owner, name, dirPath }) => ({
+                label: `$(github-inverted) ${owner}/${name}`,
+                value: dirPath,
+            }));
+            return items;
+        },
+        quickPickOptions: {
+            placeHolder: 'Select repository to open',
+        },
+    }));
     // repo-forked
     framework.registerCommand('open-non-git-dirs', async () => openNewDirectory({
         async getDirectories() {
@@ -107,4 +105,3 @@ const openNewDirectory = async ({ getDirectories, quickPickOptions }: Options) =
 
     await openSelectedDirectory(dirName, forceOpenNewWindow);
 };
-

@@ -27,14 +27,6 @@ Of course, Project Manager is a more comprehensive extension for working with gi
 
 Show git directories without *origin* remote. The most probably that aren't published yet.
 
-## How to Install
-
-1. In cloned repository, run `compile` NPM script.
-2. Run `npx vsce package`
-3. Right click on newly generated `github-manager-*.vsix` -> click `Install Extension VSIX` at bottom.
-
-I'll publish this to the marketplace once I get more feedback on this extension.
-
 ## Developer Notes
 
 If you need to edit commands list, edit them in `src/commands/commands.ts` and then run `update-package-json` NPM script.
