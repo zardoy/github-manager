@@ -76,18 +76,18 @@
         "@types/react-dom": "^17.0.9",
         "@types/vscode": "^1.59.0",
         "@zardoy/xo-config": "^0.0.6",
-        "esbuild": "^0.12.17",
+        "esbuild": "^0.12.19",
         "glob": "^7.1.7",
         "mocha": "^9.0.3",
         "modify-json-file": "^1.1.0",
         "type-fest": "^2.0.0",
         "typescript": "^4.3.5",
         "vscode-test": "^1.6.1",
-        "xo": "^0.43.0"
+        "xo": "^0.44.0"
     },
     "dependencies": {
         "@octokit/rest": "^18.8.0",
-        "@zardoy/tsconfig": "^1.1.1",
+        "@zardoy/tsconfig": "^1.2.0",
         "@zardoy/vscode-tools": "github:zardoy/vscode-tools#build",
         "acorn": "^8.4.1",
         "acorn-walk": "^8.1.1",
