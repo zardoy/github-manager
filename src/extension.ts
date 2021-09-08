@@ -8,8 +8,6 @@ import { defaultsDeep } from 'lodash'
 import { getGithubRepos, getReposDir, getWhereToOpen, openSelectedDirectory } from './util'
 import { getDirsFromCwd } from './utils/git'
 
-// TODO no-floating-promises doesn't work
-
 export async function activate(ctx: vscode.ExtensionContext) {
     const framework = new VscodeFramework(ctx)
 
@@ -117,3 +115,9 @@ const openNewDirectory = async ({ getDirectories, quickPickOptions }: Options) =
 
     await openSelectedDirectory(dirName, forceOpenNewWindow)
 }
+
+// TODO: implement commands
+// {
+//     command: 'open-github-forked-repos',
+//     title: 'Open Forked Cloned GitHub Repository'
+// },

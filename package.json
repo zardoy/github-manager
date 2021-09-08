@@ -4,9 +4,6 @@
     "displayName": "GitHub Manager",
     "description": "Quickly switch between cloned GitHub repos",
     "version": "0.0.1",
-    "files": [
-        "out"
-    ],
     "categories": [
         "Other"
     ],
@@ -18,93 +15,84 @@
         "open"
     ],
     "activationEvents": [
-        "onCommand:github-manager.open-github-repos",
-        "onCommand:github-manager.open-non-git-dirs",
-        "onCommand:github-manager.open-non-remote-repos"
+        "onCommands"
     ],
     "contributes": {
         "commands": [
             {
                 "category": "GitHub Manager",
-                "command": "github-manager.open-github-repos",
+                "command": "open-github-repos",
                 "title": "Open Cloned GitHub Repository"
             },
             {
                 "category": "GitHub Manager",
-                "command": "github-manager.open-non-git-dirs",
+                "command": "open-non-git-dirs",
                 "title": "Open Non-Git Directory"
             },
             {
                 "category": "GitHub Manager",
-                "command": "github-manager.open-non-remote-repos",
+                "command": "open-non-remote-repos",
                 "title": "Open Non-Remote Repository"
             }
         ],
-        "configuration": [
-            {
-                "title": "GitHub Manager",
-                "properties": {
-                    "github-manager.whereToOpen": {
-                        "type": "string",
-                        "default": "newWindowIfNotEmpty",
-                        "enum": [
-                            "newWindowIfNotEmpty",
-                            "alwaysSameWindow",
-                            "ask(after)",
-                            "ask(before)"
-                        ]
-                    }
+        "configuration": {
+            "title": "GitHub Manager",
+            "properties": {
+                "github-manager.whereToOpen": {
+                    "type": "string",
+                    "default": "newWindowIfNotEmpty",
+                    "enum": [
+                        "newWindowIfNotEmpty",
+                        "alwaysSameWindow",
+                        "ask(after)",
+                        "ask(before)"
+                    ]
                 }
             }
-        ]
+        }
     },
+    "extensionKind": [],
     "scripts": {
-        "watch": "vscode-tools esbuild dev",
-        "compile": "vscode-tools esbuild prod",
-        "pretest": "pnpm run compile && pnpm run lint",
+        "start": "vscode-framework start",
+        "watch": "not available",
+        "build": "vscode-framework build",
+        "pretest": "pnpm build && pnpm lint",
         "test": "node ./out/test/runTest.js",
-        "vscode:prepublish": "tsc && ts-node scripts/prepare.ts && pnpm run compile",
+        "vscode:prepublish": "tsc && ts-node scripts/prepare.ts && pnpm build",
         "lint": "xo src",
         "lint:fix": "xo src --fix"
     },
     "devDependencies": {
         "@types/glob": "^7.1.4",
-        "@types/lodash": "^4.14.171",
+        "@types/lodash": "^4.14.172",
         "@types/mocha": "^9.0.0",
-        "@types/node": "16.4.13",
-        "@types/react": "^17.0.16",
+        "@types/node": "16.7.13",
+        "@types/react": "^17.0.20",
         "@types/react-dom": "^17.0.9",
-        "@types/vscode": "^1.59.0",
-        "@zardoy/xo-config": "^0.0.6",
-        "esbuild": "^0.12.19",
+        "@types/vscode": "^1.60.0",
+        "@zardoy/xo-config": "^0.1.0",
+        "esbuild": "^0.12.25",
         "glob": "^7.1.7",
-        "mocha": "^9.0.3",
+        "mocha": "^9.1.1",
         "modify-json-file": "^1.1.0",
-        "type-fest": "^2.0.0",
-        "typescript": "^4.3.5",
+        "type-fest": "^2.2.0",
+        "typescript": "^4.4.2",
         "vscode-test": "^1.6.1",
         "xo": "^0.44.0"
     },
     "dependencies": {
-        "@octokit/rest": "^18.8.0",
-        "@zardoy/tsconfig": "^1.2.0",
-        "@zardoy/vscode-tools": "github:zardoy/vscode-tools#build",
-        "acorn": "^8.4.1",
-        "acorn-walk": "^8.1.1",
-        "find-up": "^5.0.0",
+        "@octokit/rest": "^18.10.0",
+        "@zardoy/tsconfig": "^1.2.2",
+        "find-up": "^6.0.0",
         "git-remote-origin-url": "^3.1.0",
-        "github-remote-info": "^1.0.0",
+        "github-remote-info": "^1.0.3",
         "lodash": "^4.17.21",
-        "nanoid": "^3.1.23",
+        "nanoid": "^3.1.25",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
-        "read-pkg": "^6.0.0"
-    },
-    "engines": {
-        "vscode": "^1.59.0"
+        "read-pkg": "^7.0.0",
+        "vscode-framework": "github:zardoy/vscode-tools#build"
     },
     "license": "MIT",
-    "main": "out.js",
-    "qna": false,
-    "repository": "https://github.com/zardoy/github-manager"
+    "qna": false
 }
