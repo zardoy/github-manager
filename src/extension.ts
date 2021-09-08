@@ -1,18 +1,17 @@
-/// <reference types="@zardoy/vscode-tools/client" />
+/// <reference types="vscode-framework/build/client" />
 import path from 'path';
 import vscode, { QuickPickOptions } from 'vscode';
-import { VscodeFramework, showQuickPick, VSCodeQuickPickItem } from '@zardoy/vscode-tools';
+import { VscodeFramework, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework';
 import { getGithubRemoteInfo } from 'github-remote-info';
 import { SetRequired } from 'type-fest';
 import { defaultsDeep } from 'lodash';
 import { getGithubRepos, getReposDir, getWhereToOpen, openSelectedDirectory } from './util';
-import { commands } from './commands';
 import { getDirsFromCwd } from './utils/git';
 
 // TODO no-floating-promises doesn't work
 
 export async function activate(ctx: vscode.ExtensionContext) {
-    const framework = new VscodeFramework(commands, ctx);
+    const framework = new VscodeFramework(ctx);
 
     framework.registerCommand('open-github-repos', async () => openNewDirectory({
         getDirectories: async () => {
