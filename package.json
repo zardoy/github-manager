@@ -33,6 +33,11 @@
                 "category": "GitHub Manager",
                 "command": "open-non-remote-repos",
                 "title": "Open Non-Remote Repository"
+            },
+            {
+                "category": "GitHub Manager",
+                "command": "open-everything",
+                "title": "Open Non-Git Directory Or Repository (all)"
             }
         ],
         "configuration": {
@@ -51,10 +56,8 @@
             }
         }
     },
-    "extensionKind": [],
     "scripts": {
         "start": "vscode-framework start",
-        "watch": "not available",
         "build": "vscode-framework build",
         "pretest": "pnpm build && pnpm lint",
         "test": "node ./out/test/runTest.js",
@@ -81,6 +84,7 @@
         "xo": "^0.44.0"
     },
     "dependencies": {
+        "@hediet/node-reload": "^0.7.3",
         "@octokit/rest": "^18.10.0",
         "@zardoy/tsconfig": "^1.2.2",
         "find-up": "^6.0.0",
@@ -93,6 +97,5 @@
         "read-pkg": "^7.0.0",
         "vscode-framework": "github:zardoy/vscode-tools#build"
     },
-    "license": "MIT",
-    "qna": false
+    "license": "MIT"
 }
