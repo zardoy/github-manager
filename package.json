@@ -56,6 +56,11 @@
             }
         }
     },
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": true
+        }
+    },
     "scripts": {
         "start": "vscode-framework start",
         "build": "vscode-framework build",

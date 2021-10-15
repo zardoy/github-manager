@@ -1,15 +1,22 @@
 /// <reference types="vscode-framework/build/client" />
 import path from 'path'
 import vscode, { QuickPickOptions } from 'vscode'
-import { VscodeFramework, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
+import { VSCodeFramework, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
 import { getGithubRemoteInfo } from 'github-remote-info'
 import { SetRequired } from 'type-fest'
 import { defaultsDeep } from 'lodash'
 import { getGithubRepos, getReposDir, getWhereToOpen, openSelectedDirectory } from './util'
 import { getDirsFromCwd } from './utils/git'
+import { Settings } from 'vscode-framework/build/framework/generated'
+
+const icons = {
+    github: '$(github-inverted)',
+    nonGit: '$(file-directory)',
+    nonRemote: '$(git-branch)',
+}
 
 export async function activate(ctx: vscode.ExtensionContext) {
-    const framework = new VscodeFramework(ctx)
+    const framework = new VSCodeFramework(ctx)
 
     framework.registerCommand('open-github-repos', async () =>
         openNewDirectory({
@@ -17,7 +24,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
                 const repos = await getGithubRepos()
 
                 const items: Array<VSCodeQuickPickItem<string>> = repos.map(({ owner, name, dirPath }) => ({
-                    label: `$(github-inverted) ${owner}/${name}`,
+                    label: `${icons.github} ${owner}/${name}`,
                     value: dirPath,
                 }))
                 return items
@@ -35,7 +42,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
                 const { nonGit: nonGitDirs } = await getDirsFromCwd(gitDefaultDir)
                 const items: Array<VSCodeQuickPickItem<string>> = nonGitDirs.map(name => ({
-                    label: `$(file-directory) ${name}`,
+                    label: `${icons.nonGit} ${name}`,
                     value: name,
                 }))
                 return items
@@ -56,7 +63,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
                     .map((info, index) => (info.status === 'fulfilled' && info.value === undefined ? gitDirs[index] : undefined))
                     .filter(Boolean) as string[]
                 const items: Array<VSCodeQuickPickItem<string>> = reposWithoutRemote.map(name => ({
-                    label: `$(git-branch) ${name}`,
+                    label: `${icons.nonRemote} ${name}`,
                     value: name,
                 }))
                 return items
@@ -66,6 +73,45 @@ export async function activate(ctx: vscode.ExtensionContext) {
             },
         }),
     )
+    framework.registerCommand('open-everything', async () => {
+        openNewDirectory({
+            async getDirectories() {
+                const gitDefaultDir = getReposDir()
+
+                const { git: gitDirs, nonGit: nonGitDirs } = await getDirsFromCwd(gitDefaultDir)
+                const dirsOriginInfo = await Promise.allSettled(gitDirs.map(async dir => getGithubRemoteInfo(path.join(gitDefaultDir, dir))))
+
+                const repos = await getGithubRepos()
+
+                const items: Array<VSCodeQuickPickItem<string>> = repos.map(({ owner, name, dirPath }) => ({
+                    label: `${icons.github} ${owner}/${name}`,
+                    value: dirPath,
+                }))
+
+                const items = [
+                    ...dirsOriginInfo.map(
+                        dirsOriginInfo.map(
+                            (info, i): VSCodeQuickPickItem<string> =>
+                                //
+                                ({ label: '', value: gitDirs[i] }),
+                        ),
+                    ),
+                ]
+                // const items = ([
+                //     {
+                //         dirs: {
+
+                //         }
+                //     }
+                // ] as {
+                //     icon: string
+                //     dirs: { dir: string; display: string }[]
+                //     }[]).flatMap(({icon, dirs}) => {
+
+                // })
+            },
+        })
+    })
 }
 
 const askOpenInNewWindow = async () =>
@@ -83,7 +129,7 @@ interface Options {
 }
 
 const openNewDirectory = async ({ getDirectories, quickPickOptions }: Options) => {
-    const whereToOpen = getWhereToOpen()
+    const whereToOpen = getWhereToOpen() as Settings['whereToOpen']
     let forceOpenNewWindow: undefined | boolean
 
     if (whereToOpen === 'ask(before)') {
