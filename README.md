@@ -36,9 +36,13 @@ These fields in `package.json` are generated automatically, do not edit them:
 - `contributes.commands`
 - `activationEvents` – do not edit `command` events
 
-## TODO
+### TODO
 
-### Add settings
-
-- [ ] ignore: users, directory pattern
 - [ ] custom repository render template? (I don't really need it)
+- [ ] allow other remoteName (defaults to origin) (From which origin extract repository url. This setting affects all commands.)
+
+## Open at GitHub
+
+This is a command for opening current cloned repository at GitHub, in multi-root workspaces you have to select folder (cloned GitHub repo).
+
+This command receives arguments: `path`, `originName` (defaults to `originName` setting)

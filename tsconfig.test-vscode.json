@@ -1,0 +1,8 @@
+{
+    "extends": "@zardoy/tsconfig/node",
+    "compilerOptions": {
+        "noEmit": false,
+        "outDir": "out-test"
+    },
+    "include": ["test/runTests.ts", "test/suite"]
+}

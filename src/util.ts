@@ -2,12 +2,12 @@ import path from 'path'
 import { getGithubRemoteInfo } from 'github-remote-info'
 import _ from 'lodash'
 import vscode from 'vscode'
+import { GracefulCommandError } from 'vscode-framework'
 import { getDirsFromCwd } from './utils/git'
 
 // actually copy-pasted from zardoy/rename-repos/src/common.ts
 
 export const getWhereToOpen = (): string => vscode.workspace.getConfiguration('github-manager').get('whereToOpen')!
-
 export interface GithubRepo {
     owner: string
     name: string
@@ -17,40 +17,32 @@ export interface GithubRepo {
 
 export function getReposDir() {
     const gitDefaultDir: string | undefined | null = vscode.workspace.getConfiguration('git').get('defaultCloneDirectory')
-    if (!gitDefaultDir) throw new Error('Ensure that git.defaultCloneDirectory setting is pointing to directory with your GitHub repos')
-
+    if (!gitDefaultDir)
+        throw new GracefulCommandError('git.defaultCloneDirectory is not set. Point it to directory with your GitHub repositories', {
+            actions: [
+                {
+                    label: 'Specify with modal',
+                    async action() {
+                        const dirsPath = await vscode.window.showOpenDialog({
+                            canSelectFiles: false,
+                            canSelectFolders: true,
+                            canSelectMany: false,
+                            // TODO documents on both, except linux
+                            // defaultUri: ,
+                            openLabel: 'Select',
+                            title: 'Select directory that contains your cloned GitHub repositories',
+                        })
+                        await vscode.workspace.getConfiguration('git').update('defaultCloneDirectory', path)
+                    },
+                },
+            ],
+        })
     return gitDefaultDir
-}
-
-export const getGithubRepos = async () => {
-    try {
-        console.time('Show selections')
-        const gitDefaultDir = getReposDir()
-
-        const { git: gitDirs } = await getDirsFromCwd(gitDefaultDir)
-        const dirsOriginInfo = await Promise.allSettled(gitDirs.map(async dir => getGithubRemoteInfo(path.join(gitDefaultDir, dir))))
-        const reposWithGithubInfo = dirsOriginInfo
-            .map((state, index): GithubRepo | undefined => {
-                if (state.status === 'fulfilled') return state.value ? { ...state.value, dirPath: gitDirs[index] } : undefined
-
-                return undefined
-            })
-            .filter(Boolean) as GithubRepo[]
-        const ownerCountMap = _.countBy(reposWithGithubInfo, r => r.owner)
-        // TODO sort also by name
-        const sortedRepos = _.sortBy(reposWithGithubInfo, r => ownerCountMap[r.owner]).reverse()
-
-        return sortedRepos
-    } finally {
-        console.timeEnd('Show selections')
-    }
 }
 
 export const openSelectedDirectory = async (dirPath: GithubRepo['dirPath'], forceOpenNewWindow?: boolean) => {
     const gitDefaultDir = getReposDir()
-
     const whereToOpen = getWhereToOpen()
-
     const folderUri = vscode.Uri.file(path.join(gitDefaultDir, dirPath))
     const forceNewWindow = (() => {
         if (forceOpenNewWindow !== undefined) return forceOpenNewWindow
@@ -58,7 +50,6 @@ export const openSelectedDirectory = async (dirPath: GithubRepo['dirPath'], forc
         if (whereToOpen === 'newWindowIfNotEmpty') return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
         return false
     })()
-
     await vscode.commands.executeCommand('vscode.openFolder', folderUri, {
         forceNewWindow,
     })

@@ -1,117 +1,53 @@
-/// <reference types="vscode-framework/build/client" />
 import path from 'path'
-import vscode, { QuickPickOptions } from 'vscode'
-import { VSCodeFramework, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
 import { getGithubRemoteInfo } from 'github-remote-info'
-import { SetRequired } from 'type-fest'
 import { defaultsDeep } from 'lodash'
-import { getGithubRepos, getReposDir, getWhereToOpen, openSelectedDirectory } from './util'
+import { SetRequired } from 'type-fest'
+import vscode from 'vscode'
+import {
+    CommandHandler,
+    extensionCtx,
+    getExtensionSetting,
+    registerAllExtensionCommands,
+    RegularCommands,
+    Settings,
+    showQuickPick,
+    VSCodeQuickPickItem,
+} from 'vscode-framework'
+import { openAtGithub } from './openAtGithub'
+import { getReposDir, getWhereToOpen, openSelectedDirectory } from './util'
 import { getDirsFromCwd } from './utils/git'
-import { Settings } from 'vscode-framework/build/framework/generated'
-
-const icons = {
-    github: '$(github-inverted)',
-    nonGit: '$(file-directory)',
-    nonRemote: '$(git-branch)',
-}
 
 export async function activate(ctx: vscode.ExtensionContext) {
-    const framework = new VSCodeFramework(ctx)
+    if (getExtensionSetting('sortBy') === 'recentlyOpened') {
+        extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
+    }
 
-    framework.registerCommand('open-github-repos', async () =>
-        openNewDirectory({
-            getDirectories: async () => {
-                const repos = await getGithubRepos()
-
-                const items: Array<VSCodeQuickPickItem<string>> = repos.map(({ owner, name, dirPath }) => ({
-                    label: `${icons.github} ${owner}/${name}`,
-                    value: dirPath,
-                }))
-                return items
-            },
+    // TODO fix that
+    type FixedCommands = Exclude<keyof RegularCommands, `${string}Active${string}`>
+    const openCommandHandler: CommandHandler = async ({ command }) => {
+        const placeholders: Record<Exclude<FixedCommands, 'openAtGithub'>, string> = {
+            openGithubRepos: 'Select repository to open',
+            openNonGitDirs: 'Select non-git directory to open',
+            openNonRemoteRepos: 'Select non-remote git directory to open',
+            openEverything: 'Select directory or repository to open',
+        }
+        await openNewDirectory({
+            getDirectories: async () => {},
             quickPickOptions: {
-                placeHolder: 'Select repository to open',
-            },
-        }),
-    )
-    // repo-forked
-    framework.registerCommand('open-non-git-dirs', async () =>
-        openNewDirectory({
-            async getDirectories() {
-                const gitDefaultDir = getReposDir()
-
-                const { nonGit: nonGitDirs } = await getDirsFromCwd(gitDefaultDir)
-                const items: Array<VSCodeQuickPickItem<string>> = nonGitDirs.map(name => ({
-                    label: `${icons.nonGit} ${name}`,
-                    value: name,
-                }))
-                return items
-            },
-            quickPickOptions: {
-                placeHolder: 'Select non-git directory to open',
-            },
-        }),
-    )
-    framework.registerCommand('open-non-remote-repos', async () =>
-        openNewDirectory({
-            async getDirectories() {
-                const gitDefaultDir = getReposDir()
-
-                const { git: gitDirs } = await getDirsFromCwd(gitDefaultDir)
-                const dirsOriginInfo = await Promise.allSettled(gitDirs.map(async dir => getGithubRemoteInfo(path.join(gitDefaultDir, dir))))
-                const reposWithoutRemote = dirsOriginInfo
-                    .map((info, index) => (info.status === 'fulfilled' && info.value === undefined ? gitDirs[index] : undefined))
-                    .filter(Boolean) as string[]
-                const items: Array<VSCodeQuickPickItem<string>> = reposWithoutRemote.map(name => ({
-                    label: `${icons.nonRemote} ${name}`,
-                    value: name,
-                }))
-                return items
-            },
-            quickPickOptions: {
-                placeHolder: 'Select non-remote git directory to open',
-            },
-        }),
-    )
-    framework.registerCommand('open-everything', async () => {
-        openNewDirectory({
-            async getDirectories() {
-                const gitDefaultDir = getReposDir()
-
-                const { git: gitDirs, nonGit: nonGitDirs } = await getDirsFromCwd(gitDefaultDir)
-                const dirsOriginInfo = await Promise.allSettled(gitDirs.map(async dir => getGithubRemoteInfo(path.join(gitDefaultDir, dir))))
-
-                const repos = await getGithubRepos()
-
-                const items: Array<VSCodeQuickPickItem<string>> = repos.map(({ owner, name, dirPath }) => ({
-                    label: `${icons.github} ${owner}/${name}`,
-                    value: dirPath,
-                }))
-
-                const items = [
-                    ...dirsOriginInfo.map(
-                        dirsOriginInfo.map(
-                            (info, i): VSCodeQuickPickItem<string> =>
-                                //
-                                ({ label: '', value: gitDirs[i] }),
-                        ),
-                    ),
-                ]
-                // const items = ([
-                //     {
-                //         dirs: {
-
-                //         }
-                //     }
-                // ] as {
-                //     icon: string
-                //     dirs: { dir: string; display: string }[]
-                //     }[]).flatMap(({icon, dirs}) => {
-
-                // })
+                placeHolder: placeholders[command],
             },
         })
-    })
+    }
+
+    registerAllExtensionCommands({
+        openEverything: openCommandHandler,
+        openGithubRepos: openCommandHandler,
+        openNonGitDirs: openCommandHandler,
+        openNonRemoteRepos: openCommandHandler,
+        openAtGithub,
+    } as Record<FixedCommands, CommandHandler> as any)
+
+    // repo-forked
 }
 
 const askOpenInNewWindow = async () =>
@@ -125,7 +61,7 @@ type MaybePromise<T> = T | Promise<T>
 interface Options {
     /** @returns with returnValue = relative path from default dir */
     getDirectories: () => MaybePromise<Array<VSCodeQuickPickItem<string>>>
-    quickPickOptions: SetRequired<QuickPickOptions, 'placeHolder'>
+    quickPickOptions: SetRequired<vscode.QuickPickOptions, 'placeHolder'>
 }
 
 const openNewDirectory = async ({ getDirectories, quickPickOptions }: Options) => {
