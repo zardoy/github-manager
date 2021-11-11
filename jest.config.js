@@ -1,7 +1,5 @@
 const config = {
-    transform: {
-        '^.+\\.tsx?$': 'esbuild-runner/jest',
-    },
+    preset: 'ts-jest',
 }
 
 module.exports = config
