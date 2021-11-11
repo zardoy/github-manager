@@ -2,11 +2,9 @@
 import path from 'path'
 import { getGithubRemoteInfo } from 'github-remote-info'
 import _ from 'lodash'
-import { RequireAtLeastOne } from 'type-fest'
-import { extensionCtx, getExtensionSetting, getExtensionCommandId } from 'vscode-framework'
-import { getLastModifiedDirs } from '../getLastModifiedDirs'
-import { GithubRepo } from '../util'
-import { getDirsFromCwd } from './git'
+import { extensionCtx, getExtensionSetting } from 'vscode-framework'
+import { getDirsFromCwd, GithubRepo } from './git'
+import { findDuplicatesBy, normalizeRegex } from './util'
 const icons = {
     github: '$(github-inverted)',
     nonGit: '$(file-directory)',
@@ -15,12 +13,20 @@ const icons = {
 
 // github-forked
 // github-non-forked
-type DirectoryType = 'github' | 'non-git' | 'non-remote'
+export type DirectoryType = 'github' | 'non-git' | 'non-remote'
+interface DirectoryDisplayItem {
+    dirName: string
+    displayName: string
+    description?: string
+}
 
 /** Returns dirs, ready to show in quickPick */
 // eslint-disable-next-line complexity
-export const getDirectoriesToShow = async (cwd: string, selectedDirs: RequireAtLeastOne<Record<DirectoryType, boolean>>) => {
-    const directories: Array<{ dirName: string; displayName: string }> = []
+export const getDirectoriesToShow = async (
+    cwd: string,
+    selectedDirs: Partial<Record<DirectoryType, boolean>>,
+): Promise<{ cwd: string; directories: DirectoryDisplayItem[]; history: string[] }> => {
+    const directories: DirectoryDisplayItem[] = []
     // const githubDirectories: Array<Record<'owner' | 'name' | ''
     /** history holds repos slug */
     let history: string[] = []
@@ -28,29 +34,31 @@ export const getDirectoriesToShow = async (cwd: string, selectedDirs: RequireAtL
     let { git: gitDirs, nonGit: nonGitDirs } = await getDirsFromCwd(cwd)
 
     if (getExtensionSetting('sortBy') === 'lastModified') {
-        const newIndexes = {
-            git: [] as string[],
-            nonGit: [] as string[],
-        }
-        for (const dir of await getLastModifiedDirs(cwd)) {
-            const gitDir = gitDirs.find(gitDir => gitDir === dir)
-            if (gitDir) {
-                newIndexes.git.push(gitDir)
-                continue
-            }
+        // TODO use github integration
+        const d = 5
+        // const newIndexes = {
+        //     git: [] as string[],
+        //     nonGit: [] as string[],
+        // }
+        // for (const dir of await getLastModifiedDirs(cwd)) {
+        //     const gitDir = gitDirs.find(gitDir => gitDir === dir)
+        //     if (gitDir) {
+        //         newIndexes.git.push(gitDir)
+        //         continue
+        //     }
 
-            const nonGitDir = nonGitDirs.find(nonGitDir => nonGitDir === dir)
-            if (nonGitDir) {
-                newIndexes.nonGit.push(nonGitDir)
-                continue
-            }
-        }
+        //     const nonGitDir = nonGitDirs.find(nonGitDir => nonGitDir === dir)
+        //     if (nonGitDir) {
+        //         newIndexes.nonGit.push(nonGitDir)
+        //         continue
+        //     }
+        // }
 
-        gitDirs = newIndexes.git
-        nonGitDirs = newIndexes.nonGit
+        // gitDirs = newIndexes.git
+        // nonGitDirs = newIndexes.nonGit
     }
 
-    const ignoreRegexp = getExtensionSetting('ignore.dirNameRegex')
+    const ignoreRegexp = normalizeRegex(getExtensionSetting('ignore.dirNameRegex'))
     if (ignoreRegexp) {
         gitDirs = gitDirs.filter(dirName => !dirName.match(ignoreRegexp))
         nonGitDirs = nonGitDirs.filter(dirName => !dirName.match(ignoreRegexp))
@@ -68,9 +76,11 @@ export const getDirectoriesToShow = async (cwd: string, selectedDirs: RequireAtL
                 })
                 .filter(Boolean) as GithubRepo[]
             if (getExtensionSetting('sortBy') === 'byOwner') {
-                const ownerCountMap = _.countBy(reposWithGithubInfo, r => r.owner)
-                // TODO sort also by name
-                reposWithGithubInfo = _.sortBy(reposWithGithubInfo, r => ownerCountMap[r.owner]).reverse()
+                // desc
+                const reposByOwner = Object.values(_.groupBy(reposWithGithubInfo, r => r.owner)).sort((a, b) => b.length - a.length)
+                /** sorted by name of repo */
+                const reposByOwnerSorted = reposByOwner.map(repos => _.sortBy(repos, r => r.name))
+                reposWithGithubInfo = reposByOwnerSorted.flat(1)
             }
 
             if (getExtensionSetting('sortBy') === 'recentlyOpened') {
@@ -90,9 +100,8 @@ export const getDirectoriesToShow = async (cwd: string, selectedDirs: RequireAtL
 
             directories.push(
                 ...reposWithGithubInfo.map(({ dirPath, name, owner }) => ({
-                    type: 'github' as DirectoryType,
-                    dirName: dirPath,
                     displayName: `${icons.github} ${owner}/${name}`,
+                    dirName: dirPath,
                 })),
             )
         }
@@ -101,10 +110,12 @@ export const getDirectoriesToShow = async (cwd: string, selectedDirs: RequireAtL
             const reposWithoutRemote = dirsOriginInfo
                 .map((info, index) => (info.status === 'fulfilled' && info.value === undefined ? gitDirs[index] : undefined))
                 .filter(Boolean) as string[]
-            return reposWithoutRemote.map(name => ({
-                label: `${icons.nonRemote} ${name}`,
-                value: name,
-            }))
+            directories.push(
+                ...reposWithoutRemote.map(name => ({
+                    displayName: `${icons.nonRemote} ${name}`,
+                    dirName: name,
+                })),
+            )
         }
     }
 
@@ -115,6 +126,9 @@ export const getDirectoriesToShow = async (cwd: string, selectedDirs: RequireAtL
                 dirName: name,
             })),
         )
+
+    for (const [, indexes] of findDuplicatesBy(directories, ({ displayName }) => displayName))
+        for (const i of indexes) directories[i].description = directories[i].dirName
 
     if (getExtensionSetting('reverseList')) directories.reverse()
 

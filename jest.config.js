@@ -1,5 +1,3 @@
-const config = {
-    preset: 'ts-jest',
-}
+const config = {}
 
 module.exports = config

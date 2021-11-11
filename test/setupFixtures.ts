@@ -1,11 +1,14 @@
 import { dirname, join } from 'path'
-import fsExtra from 'fs-extra'
 import { fileURLToPath } from 'url'
+import fsExtra from 'fs-extra'
+import { utimes } from 'utimes'
+import delay from 'delay'
+import { touchDirs } from './common'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const fromFixtureDir = (...path: string[]) => join(__dirname, 'fixtures/mixed-dirs', ...path)
 
-await fsExtra.ensureDir(fromFixtureDir())
+await fsExtra.emptyDir(fromFixtureDir())
 
 type FromPath = (...path: string[]) => string
 
@@ -28,6 +31,9 @@ const dirs: Record<string, (fromPath: FromPath) => any> = {
     githubAuthor2: createGithubRepository('another-owner/something-else'),
     anotherGithubAuthor2: createGithubRepository('another-owner/something-else-here'),
     githubDuplicate: createWithGitRemote('git+ssh://git@github.com/another-owner/something-else-here.git'),
+    githubDuplicate2: createWithGitRemote('git+ssh://git@github.com/another-owner/something-else-here.git'),
+    'github-top': createWithGitRemote('git+ssh://git@github.com/another-owner/a.git'),
+    // Ignored! HAHA
     gitlabRepo: createWithGitRemote('https://gitlab.com/foo/bar/baz.git'),
     async nonRemote(fromDir) {
         await fsExtra.ensureFile(fromDir('.git/config'))

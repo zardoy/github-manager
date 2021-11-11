@@ -5,7 +5,7 @@ import { CommandHandler, getCurrentWorkspace, GracefulCommandError } from 'vscod
 import ini from 'ini'
 import vscode from 'vscode'
 
-export const openAtGithub: CommandHandler = async (_, { path = '', remoteName = 'origin' }: { path?: string; remoteName?: string }) => {
+export const openAtGithub: CommandHandler = async (_, { path = '', remoteName = 'origin' }: { path?: string; remoteName?: string } = {}) => {
     const workspaceConfigMap = new Map<number, string>()
     const selectedWorkspace = await getCurrentWorkspace({
         async filterWorkspaces(workspace) {

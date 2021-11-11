@@ -2,7 +2,7 @@ import execa from 'execa'
 
 export const getLastModifiedDirs = async (cwd: string): Promise<string[]> => {
     if (process.platform === 'win32') {
-        const result = await execa('dir', ['/O-D'], { cwd })
+        const result = await execa('dir', ['/O-D'], { cwd, shell: true })
         return result.stdout
             .split('\n')
             .map(str => /<DIR>\s+(.+)/.exec(str))

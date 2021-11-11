@@ -1,3 +1,6 @@
 {
-    "extends": "plugin:zardoy-config/recommended"
+    "extends": "plugin:zardoy-config/recommended",
+    "rules": {
+        "spaced-comment": "off"
+    }
 }

@@ -46,3 +46,8 @@ These fields in `package.json` are generated automatically, do not edit them:
 This is a command for opening current cloned repository at GitHub, in multi-root workspaces you have to select folder (cloned GitHub repo).
 
 This command receives arguments: `path`, `originName` (defaults to `originName` setting)
+
+### About the Icon
+
+Initially I wanted to use GitHub icon with Project Manager icon background, however I presume I [can't use it](https://github.com/logos) in my "products".
+So I picked [repo-push Octicon](https://github.com/primer/octicons/blob/main/icons/repo-push-24.svg)

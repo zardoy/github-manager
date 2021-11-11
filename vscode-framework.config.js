@@ -2,7 +2,7 @@
 
 /** @type{import('vscode-framework/build/config').UserConfig} */
 const config = {
-    esbuildConfig: {
+    esbuild: {
         sourcemap: true,
     },
     target: {
