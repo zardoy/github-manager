@@ -25,7 +25,8 @@ export interface GithubRepo {
     owner: string
     name: string
     /** Relative directory path from defaultCloneDirectory */
-    dirPath: string
+    forked: boolean
+    dirName: string
 }
 
 export function getReposDir(openCommand: OpenCommands) {

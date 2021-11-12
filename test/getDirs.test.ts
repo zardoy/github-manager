@@ -7,16 +7,22 @@ import * as getDirs from '../src/core/getDirs'
 
 const getDirectoriesToShow = async (dirs: Parameters<typeof getDirs.getDirectoriesToShow>[1]) => {
     const { cwd, ...result } = await getDirs.getDirectoriesToShow(join(__dirname, './fixtures/mixed-dirs'), dirs)
-    return result
+    return { ...result }
 }
 
 const initialSettings: Settings = {
     'ignore.dirNameRegex': '',
     'ignore.users': [],
-    sortBy: 'byOwner',
-    reverseList: false,
+    boostRecentlyOpened: false,
     whereToOpen: 'newWindowIfNotEmpty',
     showFolderNames: 'onDuplicates',
+    enableAuthentication: false,
+    // we don't test @octokit/rest?
+    forkDetectionMethod: 'upstreamRemote',
+    'onlineRepos.clonedDirFormat': 'repoName',
+    'onlineRepos.reposType': 'all',
+    'onlineRepos.showArchived': false,
+    'onlineRepos.sortBy': 'lastPushed',
 }
 let mockedSettings: Settings = { ...initialSettings }
 

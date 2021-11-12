@@ -1,8 +1,7 @@
-import path from 'path'
+import { join } from 'path'
 import vscode from 'vscode'
-import { getExtensionSetting, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
+import { extensionCtx, getExtensionSetting, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
 import { getDirectoriesToShow } from './getDirs'
-import { getReposDir, GithubRepo } from './git'
 
 const askOpenInNewWindow = async () =>
     showQuickPick([
@@ -16,6 +15,8 @@ interface Options {
     quickPickOptions: Pick<vscode.QuickPickOptions, 'title'>
 }
 
+const HISTORY_ITEMS_LIMIT = 30
+
 export const openNewDirectory = async ({ getDirectories, quickPickOptions }: Options) => {
     const whereToOpen = getExtensionSetting('whereToOpen')
     let forceOpenNewWindow: undefined | boolean
@@ -26,19 +27,24 @@ export const openNewDirectory = async ({ getDirectories, quickPickOptions }: Opt
         forceOpenNewWindow = result
     }
 
+    type ItemType = {
+        dirName: string
+        repoSlug?: string
+    }
+
     // TODO vscode-extra: refactor with first arg promise
-    const quickPick = vscode.window.createQuickPick<VSCodeQuickPickItem>()
+    const quickPick = vscode.window.createQuickPick<VSCodeQuickPickItem<ItemType>>()
     quickPick.busy = true
     quickPick.title = quickPickOptions.title
     console.time('Get Directories')
-    const { directories } = await getDirectories()
+    const { directories, cwd, history } = await getDirectories()
     console.timeEnd('Get Directories')
 
-    quickPick.items = directories.map(({ dirName, displayName, description }) => ({ label: displayName, value: dirName, description }))
+    quickPick.items = directories.map(({ dirName, displayName, description, repoSlug }) => ({ label: displayName, value: { dirName, repoSlug }, description }))
     quickPick.busy = false
 
     // copied from vscode-extra
-    const selectedDirName = await new Promise<string | undefined>(resolve => {
+    const selectedDirName = await new Promise<ItemType | undefined>(resolve => {
         quickPick.onDidHide(() => {
             resolve(undefined)
             quickPick.dispose()
@@ -53,6 +59,7 @@ export const openNewDirectory = async ({ getDirectories, quickPickOptions }: Opt
         quickPick.show()
     })
     if (!selectedDirName) return
+    const { dirName, repoSlug } = selectedDirName
 
     if (whereToOpen === 'ask(after)') {
         const result = await askOpenInNewWindow()
@@ -60,13 +67,13 @@ export const openNewDirectory = async ({ getDirectories, quickPickOptions }: Opt
         forceOpenNewWindow = result
     }
 
-    await openSelectedDirectory(selectedDirName, forceOpenNewWindow)
+    await extensionCtx.globalState.update('lastGithubRepos', [...history, repoSlug].slice(0, HISTORY_ITEMS_LIMIT))
+    await openSelectedDirectory(join(cwd, dirName), forceOpenNewWindow)
 }
 
-export const openSelectedDirectory = async (dirPath: GithubRepo['dirPath'], forceOpenNewWindow?: boolean) => {
-    const gitDefaultDir = getReposDir()
+export const openSelectedDirectory = async (dirPath: string, forceOpenNewWindow?: boolean) => {
     const whereToOpen = getExtensionSetting('whereToOpen')
-    const folderUri = vscode.Uri.file(path.join(gitDefaultDir, dirPath))
+    const folderUri = vscode.Uri.file(dirPath)
     const forceNewWindow = (() => {
         if (forceOpenNewWindow !== undefined) return forceOpenNewWindow
         if (whereToOpen === 'alwaysSameWindow') return false

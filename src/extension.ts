@@ -1,17 +1,22 @@
-import vscode from 'vscode'
-import { CommandHandler, extensionCtx, getExtensionSetting, registerAllExtensionCommands, RegularCommands } from 'vscode-framework'
+import { Octokit } from '@octokit/rest'
+import { Except } from 'type-fest'
+import { CommandHandler, extensionCtx, getExtensionSetting, registerAllExtensionCommands, RegularCommands, showQuickPick } from 'vscode-framework'
 import { DirectoryType, getDirectoriesToShow } from './core/getDirs'
 import { getReposDir } from './core/git'
 import { openNewDirectory } from './core/open'
 import { openAtGithub } from './openAtGithub'
 
 export async function activate() {
-    if (getExtensionSetting('sortBy') === 'recentlyOpened') extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
+    if (getExtensionSetting('globallySortByRecentlyOpened')) extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
 
     const openCommandHandler: CommandHandler = async ({ command }, args = {}) => {
         interface CommandArgs {
             openGithubRepository: {
                 includeForks: string
+                notClonedOnly: string
+            }
+            openForkedGithubRepository: {
+                notClonedOnly: string
             }
             openClonedGithubRepository: {
                 includeForks: boolean
@@ -29,6 +34,9 @@ export async function activate() {
         }
         const commandDirectoryTypeMap: Record<Exclude<OpenCommands, 'openEverything'>, DirectoryType> = {
             openGithubRepository: 'github',
+            openClonedForkedGithubRepository: 'github',
+            openClonedGithubRepository: 'github',
+            openForkedGithubRepository: 'github',
             openNonGitDirectory: 'non-git',
             openNonRemoteRepository: 'non-remote',
         }
@@ -45,14 +53,21 @@ export async function activate() {
     }
 
     registerAllExtensionCommands({
-        openGithubRepository: openCommandHandler,
-        openNonGitDirectory: openCommandHandler,
-        openNonRemoteRepository: openCommandHandler,
-        openEverything: openCommandHandler,
         openAtGithub,
+        ...Object.fromEntries(
+            (
+                [
+                    'openClonedForkedGithubRepository',
+                    'openClonedGithubRepository',
+                    'openEverything',
+                    'openForkedGithubRepository',
+                    'openGithubRepository',
+                    'openNonGitDirectory',
+                    'openNonRemoteRepository',
+                ] as OpenCommands[]
+            ).map(commandName => [commandName, openCommandHandler]),
+        ),
     })
-
-    // repo-forked
 }
 
-export type OpenCommands = Exclude<keyof RegularCommands, 'openAtGithub'>
+export type OpenCommands = keyof Except<RegularCommands, 'openAtGithub'>

@@ -2,9 +2,8 @@
     "name": "github-manager",
     "displayName": "GitHub Manager",
     "publisher": "zardoy",
-    "description": "Quickly switch between cloned GitHub repos",
+    "description": "Fastest way to switch between cloned GitHub repos",
     "icon": "resources/icon.png",
-    "preview": true,
     "version": "0.0.1",
     "categories": [
         "Other"
@@ -67,24 +66,10 @@
                     ],
                     "default": "newWindowIfNotEmpty"
                 },
-                "sortBy": {
-                    "type": "string",
-                    "enum": [
-                        "byOwner",
-                        "lastModified",
-                        "recentlyOpened"
-                    ],
-                    "enumDescriptions": [
-                        "Sort by count of owner's repositories",
-                        "Sort by count last modified of directory of repository",
-                        "Sort by recently opened via this extension. We don't have access to VSCode's recently opened"
-                    ],
-                    "default": "recentlyOpened"
-                },
-                "reverseList": {
+                "boostRecentlyOpened": {
                     "type": "boolean",
-                    "description": "Reverse the list in all select menus",
-                    "default": false
+                    "description": "Boost to top repos that were recently opened. It syncs and applies to all commands.\nBut note we don't have access to VSCode's recently opened menu",
+                    "default": true
                 },
                 "ignore.users": {
                     "type": "array",
@@ -119,6 +104,63 @@
                     "type": "boolean",
                     "description": "Whether to enable inegration with your GitHub accout via authentication\nDisable to work with cloned repos only",
                     "default": true
+                },
+                "forkDetectionMethod": {
+                    "type": "string",
+                    "description": "How to detect clonned repo forks",
+                    "enum": [
+                        "alwaysOnline",
+                        "fallback",
+                        "upstreamRemote"
+                    ],
+                    "markdownEnumDescriptions": [
+                        "Not available when #enableAuthentication# is `false`. Requires authentication and internet connection. Most accurate",
+                        "Use `alwaysOnline` and `upstreamRemote` when no internet connection",
+                        "Count repo as fork if it has `remote` upstream in config"
+                    ],
+                    "default": "fallback"
+                },
+                "onlineRepos.showArchived": {
+                    "type": "boolean",
+                    "description": "Whether to show archived non-cloned repos",
+                    "default": false
+                },
+                "onlineRepos.sortBy": {
+                    "type": "string",
+                    "description": "How to sort repos when displaying with not-cloned, other cloned repos are sorted according to #sortClonedBy# setting",
+                    "enum": [
+                        "lastUpdated",
+                        "lastPushed",
+                        "fullName",
+                        "created"
+                    ],
+                    "enumDescriptions": [
+                        "Sort by count of owner's repositories",
+                        "Sort by count last modified of directory of repository",
+                        "Sort by recently opened via this extension. We don't have access to VSCode's recently opened"
+                    ],
+                    "default": "recentlyOpened"
+                },
+                "onlineRepos.reposType": {
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "owner",
+                        "public",
+                        "private",
+                        "member"
+                    ],
+                    "description": "Which repository types to show",
+                    "default": "all"
+                },
+                "onlineRepos.clonedDirFormat": {
+                    "type": "string",
+                    "enum": [
+                        "repoName",
+                        "repoOwner_repoName"
+                    ],
+                    "description": "Format to use for cloning directory name",
+                    "default": "repoName"
                 }
             }
         }
@@ -180,6 +222,7 @@
         "github-remote-info": "^1.0.3",
         "hosted-git-info": "^4.0.2",
         "ini": "^2.0.0",
+        "is-online": "^9.0.1",
         "lodash": "^4.17.21",
         "nanoid": "^3.1.30",
         "react": "^17.0.2",

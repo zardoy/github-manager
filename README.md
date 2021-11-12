@@ -1,26 +1,38 @@
 # GitHub Manager
 
-> Note: ensure that global VSCode setting `git.defaultCloneDirectory` points to the directory with your GitHub repos
-
-Quickly switch between cloned GitHub repos. It's something like, [Project Manager extension](https://marketplace.visualstudio.com/items?itemName=alefragnani.project-manager), but this extension aims to provide **only** GitHub projects with `owner/name` format with the main command **Show Cloned GitHub Repositories** (show-github-dirs). Here is how it look likes:
+- Highly configurable. A lot of sorting settings
+- Syncable history of recently opened repos
 
 ![demo](https://github.com/zardoy/github-manager/blob/main/media/demo-main-command.png?raw=true)
 
-> Note: this command doesn't use GitHub API to get actual `owner/name` data, they're just extracted from the *origin* remote of each directory from `git.defaultCloneDirectory` path. If you know that some of your repositories were renamed (or their ownership were changed) use [rename-repos](https://github.com/zardoy/rename-repos)'s *script*. It also means it won't display non-GitHub repos.
+There're two main type of commands: `show repos` and `show forked repos`. And two of variants for each: `cloned` and with remote repos (without `cloned` prefix). The latter one requires authentication, it uses `repo` scope, but only to read list of your private repos. However you can freely use this extension without any authentication (or even forcefully disable it via setting).
 
-I primarily needed this extension not only because I work only with GitHub repositories, but also because with this extension it is easily to see forks / "travel" between them.
+> Note about cloned repos: If you know that some of your repositories were renamed (or their ownership were changed) use [rename-repos](https://github.com/zardoy/rename-repos)'s *script*. It also means it won't display non-GitHub repos.
 
-Of course, Project Manager is a more comprehensive extension for working with git dirs (tags, bookmarks and so on...)
+It's something like, [Project Manager extension](https://marketplace.visualstudio.com/items?itemName=alefragnani.project-manager), but the latter is a more comprehensive extension for working with git dirs (tags, bookmarks and so on...)
 
-## How to Install
-
-<!-- TODO rephrase -->
-> Note: All commands don't cache anything, so their lists would always be in sync with your directories.
+- This extension uses `git.defaultCloneDirectory` underneath from which it gets cloned repos, it is sync-ignored by default.
 
 ### TODO
 
 - [ ] custom repository render template? (I don't really need it)
 - [ ] allow other remoteName (defaults to origin) (From which origin extract repository url. This setting affects all commands.)
+
+## Sorting
+
+### Recently Opened
+
+Recently opened items will appear on top for all commands. You can disable it by setting `githubManager.boostRecentlyOpened` to `false`
+
+### For Cloned
+
+For commands that have `cloned` in title, we apply sorting by count of respos of owner and then by name of repo.
+In other words, repos of owner that have most repos will appear on top.
+
+### For Remote
+
+For commands that don't have `cloned` in title, we apply sorting according to `githubManager.onlineRepos.sortBy` setting.
+For other cloned repos that we don't have access at GitHub.
 
 ## Open at GitHub
 
