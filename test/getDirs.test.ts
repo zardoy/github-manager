@@ -180,6 +180,7 @@ Object {
     injectecVars.extensionCtx = undefined
 })
 
+// TOOD with ignore dirs
 test('Get everything', async () => {
     expect(await getDirectoriesToShow({ github: true, 'non-git': true, 'non-remote': true })).toMatchInlineSnapshot(`
 Object {

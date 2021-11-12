@@ -3,7 +3,7 @@
     "displayName": "GitHub Manager",
     "publisher": "zardoy",
     "description": "Quickly switch between cloned GitHub repos",
-    "icon": "icon.png",
+    "icon": "resources/icon.png",
     "preview": true,
     "version": "0.0.1",
     "categories": [

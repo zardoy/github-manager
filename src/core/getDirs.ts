@@ -102,6 +102,7 @@ export const getDirectoriesToShow = async (
                 ...reposWithGithubInfo.map(({ dirPath, name, owner }) => ({
                     displayName: `${icons.github} ${owner}/${name}`,
                     dirName: dirPath,
+                    ...(getExtensionSetting('showFolderNames') === 'always' ? { description: dirPath } : {}),
                 })),
             )
         }
@@ -127,8 +128,9 @@ export const getDirectoriesToShow = async (
             })),
         )
 
-    for (const [, indexes] of findDuplicatesBy(directories, ({ displayName }) => displayName))
-        for (const i of indexes) directories[i].description = directories[i].dirName
+    if (getExtensionSetting('showFolderNames') === 'onDuplicates')
+        for (const [, indexes] of findDuplicatesBy(directories, ({ displayName }) => displayName))
+            for (const i of indexes) directories[i].description = directories[i].dirName
 
     if (getExtensionSetting('reverseList')) directories.reverse()
 

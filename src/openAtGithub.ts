@@ -25,6 +25,7 @@ export const openAtGithub: CommandHandler = async (_, { path = '', remoteName = 
         return
     }
 
+    console.log(workspaceConfigMap, selectedWorkspace, vscode.workspace.workspaceFolders)
     const configString = workspaceConfigMap.get(selectedWorkspace.index)
     if (!configString) {
         await vscode.window.showWarningMessage('Not a GitHub repository')

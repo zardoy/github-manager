@@ -8,6 +8,24 @@ import { openAtGithub } from './openAtGithub'
 export async function activate() {
     if (getExtensionSetting('sortBy') === 'recentlyOpened') extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
 
+    // // Get the TS extension
+    // const tsExtension = vscode.extensions.getExtension('vscode.typescript-language-features')
+    // if (!tsExtension) {
+    //     return
+    // }
+
+    // await tsExtension.activate()
+
+    // // Get the API from the TS extension
+    // if (!tsExtension.exports || !tsExtension.exports.getAPI) {
+    //     return
+    // }
+
+    // const api = tsExtension.exports.getAPI(0)
+    // if (!api) {
+    //     return
+    // }
+
     const openCommandHandler: CommandHandler = async ({ command }) => {
         const titles: Record<OpenCommands, string> = {
             openGithubRepository: 'Select repository to open',
