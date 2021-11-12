@@ -8,30 +8,24 @@ import { openAtGithub } from './openAtGithub'
 export async function activate() {
     if (getExtensionSetting('sortBy') === 'recentlyOpened') extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
 
-    // // Get the TS extension
-    // const tsExtension = vscode.extensions.getExtension('vscode.typescript-language-features')
-    // if (!tsExtension) {
-    //     return
-    // }
-
-    // await tsExtension.activate()
-
-    // // Get the API from the TS extension
-    // if (!tsExtension.exports || !tsExtension.exports.getAPI) {
-    //     return
-    // }
-
-    // const api = tsExtension.exports.getAPI(0)
-    // if (!api) {
-    //     return
-    // }
-
-    const openCommandHandler: CommandHandler = async ({ command }) => {
-        const titles: Record<OpenCommands, string> = {
-            openGithubRepository: 'Select repository to open',
-            openNonGitDirectory: 'Select non-git directory to open',
-            openNonRemoteRepository: 'Select non-remote git directory to open',
-            openEverything: 'Select directory or repository to open',
+    const openCommandHandler: CommandHandler = async ({ command }, args = {}) => {
+        interface CommandArgs {
+            openGithubRepository: {
+                includeForks: string
+            }
+            openClonedGithubRepository: {
+                includeForks: boolean
+                owner: string
+            }
+        }
+        const titleMainPart: Record<OpenCommands, string> = {
+            openGithubRepository: 'repository',
+            openClonedGithubRepository: 'cloned repository',
+            openForkedGithubRepository: 'forked repository',
+            openClonedForkedGithubRepository: 'cloned forked repository',
+            openNonGitDirectory: 'non-git directory',
+            openNonRemoteRepository: 'non-remote git directory',
+            openEverything: 'directory or repository',
         }
         const commandDirectoryTypeMap: Record<Exclude<OpenCommands, 'openEverything'>, DirectoryType> = {
             openGithubRepository: 'github',
@@ -45,7 +39,7 @@ export async function activate() {
                     command === 'openEverything' ? { 'non-git': true, 'non-remote': true, github: true } : { [commandDirectoryTypeMap[command]]: true },
                 ),
             quickPickOptions: {
-                title: titles[command],
+                title: `Select ${titleMainPart[command]} to open`,
             },
         })
     }
