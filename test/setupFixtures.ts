@@ -1,9 +1,7 @@
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import fsExtra from 'fs-extra'
-import { utimes } from 'utimes'
 import delay from 'delay'
-import { touchDirs } from './common'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const fromFixtureDir = (...path: string[]) => join(__dirname, 'fixtures/mixed-dirs', ...path)
@@ -34,17 +32,18 @@ const dirs: Record<string, (fromPath: FromPath) => any> = {
     githubDuplicate2: createWithGitRemote('git+ssh://git@github.com/another-owner/something-else-here.git'),
     'github-top': createWithGitRemote('git+ssh://git@github.com/another-owner/a.git'),
     async 'github-fork'(fromDir) {
+        await fsExtra.ensureDir(fromDir('.git/'))
         await fsExtra.promises.writeFile(
             fromDir('.git/config'),
             `[remote "origin"]
         url=https://github.com/awesome-contributor/vscode.git
-    [remote "upstream"]
+[remote "upstream"]
         url=https://github.com/microsoft/vscode.git`,
         )
     },
     'github-without-upstream-remote': createGithubRepository('another-author/some-forked-repo'),
     // Ignored! HAHA
-    gitlabRepo: createWithGitRemote('https://gitlab.com/foo/bar/baz.git'),
+    gitlabRepo: createWithGitRemote('https://gitlab.com/smartive/open-source/christoph/typescript-hero.git'),
     async nonRemote(fromDir) {
         await fsExtra.ensureFile(fromDir('.git/config'))
     },

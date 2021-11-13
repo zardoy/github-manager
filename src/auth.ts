@@ -32,7 +32,7 @@ export async function getAuthorizedOctokit() {
     })
 }
 
-export async function getAllGithubRepos() {
+export async function getAllGithubRepos(abortSignal: AbortSignal) {
     const sortBy = getExtensionSetting('onlineRepos.sortBy')
     const showArchived = getExtensionSetting('onlineRepos.showArchived')
 
@@ -45,6 +45,9 @@ export async function getAllGithubRepos() {
             type: getExtensionSetting('onlineRepos.reposType'),
             per_page: 100,
             page: i,
+            request: {
+                signal: abortSignal,
+            },
         })
         if (!showArchived) newRepos = newRepos.filter(({ archived }) => !archived)
         repos = [...repos, ...newRepos]

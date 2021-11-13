@@ -21,6 +21,7 @@ specifiers:
   '@types/vscode': ^1.62.0
   '@vscode/test-electron': ^1.6.2
   '@zardoy/tsconfig': ^1.2.2
+  abortcontroller-polyfill: ^1.7.3
   babel-jest: ^27.3.1
   delay: ^5.0.0
   esbuild: ^0.13.13
@@ -50,7 +51,7 @@ specifiers:
   type-fest: ^2.5.3
   typescript: ^4.4.4
   url-join: ^4.0.1
-  vscode-framework: 0.0.11
+  vscode-framework: 0.0.12
   vscode-test: ^1.6.1
 
 dependencies:
@@ -60,6 +61,7 @@ dependencies:
   '@types/ini': 1.3.31
   '@types/url-join': 4.0.1
   '@zardoy/tsconfig': 1.2.2_typescript@4.4.4
+  abortcontroller-polyfill: 1.7.3
   esbuild-runner: 2.2.1_esbuild@0.13.13
   execa: 5.1.1
   find-up: 6.2.0
@@ -75,7 +77,7 @@ dependencies:
   read-pkg: 7.0.0
   recursive-last-modified: 1.0.5
   url-join: 4.0.1
-  vscode-framework: 0.0.11_08cabb57fbbb8405710bdcde0272d749
+  vscode-framework: 0.0.12_08cabb57fbbb8405710bdcde0272d749
 
 devDependencies:
   '@babel/cli': 7.16.0_@babel+core@7.16.0
@@ -2236,6 +2238,10 @@ packages:
   /abab/2.0.5:
     resolution: {integrity: sha512-9IK9EadsbHo6jLWIpxpR6pL0sazTXV6+SQv25ZB+F7Bj9mJNaOc4nCRabwd5M/JwmUa8idz6Eci6eKfJryPs6Q==}
     dev: true
+
+  /abortcontroller-polyfill/1.7.3:
+    resolution: {integrity: sha512-zetDJxd89y3X99Kvo4qFx8GKlt6GsvN3UcRZHwU6iFA/0KiOmhkTVhe8oRoTBiTVPZu09x3vCra47+w8Yz1+2Q==}
+    dev: false
 
   /accepts/1.3.7:
     resolution: {integrity: sha512-Il80Qs2WjYlJIBNzNkK6KYqlVMTbZLXgHx2oT0pU/fjRHyEp+PEfEPY0R3WCwAGVOtauxh1hOxNgIf5bv7dQpA==}
@@ -7339,8 +7345,8 @@ packages:
     engines: {node: '>= 0.8'}
     dev: false
 
-  /vscode-extra/0.0.3_@types+vscode@1.62.0:
-    resolution: {integrity: sha512-2v+SqCUdVGF0+2294bV3t8ruQLpvxMMIMsMzJNt6jlPG+1M0pJ4BcjVdVw102JR7KXb1jZ1MOjffBBCKZhzFYg==}
+  /vscode-extra/0.0.4_@types+vscode@1.62.0:
+    resolution: {integrity: sha512-dI435DBqb9VSGX0HpapJN5jSg3hXXU9y6hlmXIJAiI3sF2YpEZjC+aZncn1NkkuUmbT0IY19cQOjQiez8mmJ7A==}
     engines: {node: '"^12.20.0 || ^14.13.1 || >=16.0.0"'}
     peerDependencies:
       '@types/vscode': ^1.60.0
@@ -7349,8 +7355,8 @@ packages:
       lodash: 4.17.21
     dev: false
 
-  /vscode-framework/0.0.11_08cabb57fbbb8405710bdcde0272d749:
-    resolution: {integrity: sha512-st08+1KR9Emld5vyJpOfKC4GMVzvrDE9kXkMbgHs0QrUxyhYht5AyuTdYUheDre0T+Y04tUNDxuINkbVn0Ziog==}
+  /vscode-framework/0.0.12_08cabb57fbbb8405710bdcde0272d749:
+    resolution: {integrity: sha512-9k7NegqRdsyrgiSnxUqrhOGIApnQysKQShTVIa7rZmKvk9Nsv+9M7t1T0humnUbtc5xq79K4wjg5kV3lZO45Fg==}
     engines: {node: '"^12.20.0 || ^14.13.1 || >=16.0.0"'}
     hasBin: true
     requiresBuild: true
@@ -7382,7 +7388,7 @@ packages:
       ts-morph: 12.2.0
       typed-jsonfile: 0.2.0
       typescript-json-schema: 0.51.0
-      vscode-extra: 0.0.3_@types+vscode@1.62.0
+      vscode-extra: 0.0.4_@types+vscode@1.62.0
       vscode-manifest: 0.0.6
       ws: 8.2.3
     transitivePeerDependencies:

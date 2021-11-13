@@ -215,6 +215,7 @@
         "@types/ini": "^1.3.31",
         "@types/url-join": "^4.0.1",
         "@zardoy/tsconfig": "^1.2.2",
+        "abortcontroller-polyfill": "^1.7.3",
         "esbuild-runner": "^2.2.1",
         "execa": "^5.1.1",
         "find-up": "^6.2.0",
@@ -230,7 +231,7 @@
         "read-pkg": "^7.0.0",
         "recursive-last-modified": "^1.0.5",
         "url-join": "^4.0.1",
-        "vscode-framework": "0.0.11"
+        "vscode-framework": "0.0.12"
     },
     "license": "MIT"
 }

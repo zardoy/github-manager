@@ -1,18 +1,16 @@
 /* eslint-disable zardoy-config/unicorn/prefer-regexp-test */
 import path, { join } from 'path'
 import fsExtra from 'fs-extra'
-import { getGithubRemoteInfo } from 'github-remote-info'
-import _ from 'lodash'
-import { extensionCtx, getExtensionSetting, getExtensionSettingId, GracefulCommandError } from 'vscode-framework'
+import { fromUrl } from 'hosted-git-info'
 import ini from 'ini'
 import isOnline from 'is-online'
-import { fromUrl } from 'hosted-git-info'
-import { Octokit } from '@octokit/rest'
-import { getAllGithubRepos, getAuthorizedOctokit } from '../auth'
+import _ from 'lodash'
+import { extensionCtx, getExtensionSetting, getExtensionSettingId, GracefulCommandError } from 'vscode-framework'
+import { getAllGithubRepos } from '../auth'
 import { getDirsFromCwd, GithubRepo, RemoteGithubRepo } from './git'
 import { findDuplicatesBy, normalizeRegex } from './util'
 
-const icons = {
+const ICONS = {
     github: '$(github-inverted)',
     nonGit: '$(file-directory)',
     nonRemote: '$(git-branch)',
@@ -30,16 +28,27 @@ type DirectoryDisplayItem = {
     repoSlug?: string
 }
 
-const remoteName = 'origin'
+const defaultRemoteName = 'origin'
 
+// const makeRepoPredicate =
+//     <T extends Record<'owner' | 'name', string>>(findRepo: T) =>
+//     (repoItem: T) =>
+//         repoItem.owner === findRepo.owner && repoItem.name === findRepo.name
+
+// TODO vscode fails to refactor it to destr
+// TODO try to resolve complexity
 /** Returns dirs, ready to show in quickPick */
 // eslint-disable-next-line complexity
 export const getDirectoriesToShow = async (
     cwd: string,
     selectedDirs: Partial<Record<DirectoryType, boolean>>,
-    // if was invoked command that doesn't have "cloned" in title
+    // if was invoked command that doesn't have "cloned" in title. Only for repos
     openWithRemotesCommand = false,
+    onlyForks = false,
+    // making optional for testing
+    abortSignal?: AbortSignal,
 ): Promise<{ cwd: string; directories: DirectoryDisplayItem[]; history: string[] }> => {
+    if (!abortSignal) abortSignal = new AbortController().signal
     const directories: DirectoryDisplayItem[] = []
     // const githubDirectories: Array<Record<'owner' | 'name' | ''
     /** history holds repos slug */
@@ -54,6 +63,7 @@ export const getDirectoriesToShow = async (
     }
 
     if (selectedDirs.github || selectedDirs['non-remote']) {
+        // TODO how to apply abortSignal here
         const dirsRemotesInfo = await Promise.allSettled(gitDirs.map(async dir => getDirRemotes(path.join(cwd, dir))))
 
         if (selectedDirs.github) {
@@ -75,11 +85,11 @@ export const getDirectoriesToShow = async (
                     // TODO-low log failures
                     if (state.status === 'fulfilled' && state.value) {
                         const { value: remotes } = state
-                        if (!remotes[remoteName]) return
-                        const remoteParsed = fromUrl(remotes[remoteName])
-                        if (!remoteParsed || remoteParsed.domain !== 'github') return undefined
+                        if (!remotes[defaultRemoteName]) return
+                        const remoteParsed = fromUrl(remotes[defaultRemoteName])
+                        if (!remoteParsed || remoteParsed.domain !== 'github.com') return undefined
                         return {
-                            forked: forkDetectionMethod === 'upstreamRemote' ? 'upstream' in remotes : /* TODO online */ false,
+                            forked: forkDetectionMethod === 'upstreamRemote' ? 'upstream' in remotes : false,
                             dirName: gitDirs[index],
                             name: remoteParsed.project,
                             owner: remoteParsed.user,
@@ -91,7 +101,7 @@ export const getDirectoriesToShow = async (
                 .filter(Boolean) as GithubRepo[]
 
             if (forkDetectionMethod === 'alwaysOnline' && !openWithRemotesCommand) {
-                const allForks = (await getAllGithubRepos()).filter(({ fork }) => fork)
+                const allForks = (await getAllGithubRepos(abortSignal)).filter(({ fork }) => fork)
                 reposWithGithubInfo = reposWithGithubInfo.map(repo => ({
                     ...repo,
                     forked: allForks.some(({ owner, name }) => owner.login === repo.owner && name === repo.name),
@@ -100,23 +110,26 @@ export const getDirectoriesToShow = async (
 
             let topQuickPicks: RemoteGithubRepo[] = []
             if (openWithRemotesCommand)
-                // TODO! only 100 is fetched
                 /** remote + cloned that found on remote */
-                topQuickPicks = (await getAllGithubRepos()).map(({ owner, name, fork: isFork }) => {
+                topQuickPicks = (await getAllGithubRepos(abortSignal)).map(({ owner, name, fork: isFork }) => {
                     const clonedIndex = reposWithGithubInfo.findIndex(r => r.owner === owner.login && r.name === name)
                     const clonedRepo = reposWithGithubInfo[clonedIndex]
                     if (clonedRepo) reposWithGithubInfo.splice(clonedIndex, 1)
+                    // eslint-disable-next-line zardoy-config/@typescript-eslint/prefer-optional-chain
                     return { remote: true, dirName: clonedRepo && clonedRepo.dirName, forked: clonedRepo?.forked || isFork, owner: owner.login, name }
                 })
-            // displayName: `$(github-inverted) ${isCloned ? '' : '$(globe)'} ${full_name}`
 
+            // sort cloned repos that don't have on remote
             // desc
             const reposByOwner = Object.values(_.groupBy(reposWithGithubInfo, r => r.owner)).sort((a, b) => b.length - a.length)
             /** sorted by name of repo */
             const reposByOwnerSorted = reposByOwner.map(repos => _.sortBy(repos, r => r.name))
             reposWithGithubInfo = reposByOwnerSorted.flat(1)
 
-            const allReposPicks = [...topQuickPicks, ...reposWithGithubInfo]
+            let allReposPicks = [...topQuickPicks, ...reposWithGithubInfo]
+            const ignoreUsers = getExtensionSetting('ignore.users') as string[]
+            allReposPicks = allReposPicks.filter(({ owner }) => !ignoreUsers.includes(owner))
+
             if (getExtensionSetting('boostRecentlyOpened')) {
                 history = extensionCtx.globalState.get('lastGithubRepos') ?? []
                 for (const repoSlug of history) {
@@ -128,16 +141,18 @@ export const getDirectoriesToShow = async (
                 }
             }
 
-            const ignoreUsers = getExtensionSetting('ignore.users') as string[]
-            reposWithGithubInfo = reposWithGithubInfo.filter(({ owner }) => !ignoreUsers.includes(owner))
-
             directories.push(
-                ...allReposPicks.map(({ dirName, name, owner }) => ({
-                    displayName: `${icons.github} ${owner}/${name}`,
-                    dirName,
-                    repoSlug: `${owner}/${name}`,
-                    ...(getExtensionSetting('showFolderNames') === 'always' ? { description } : {}),
-                })),
+                ...allReposPicks.map(({ dirName, forked: isFork, name, owner, ...rest }) => {
+                    let icon = ICONS.github
+                    if (isFork) icon += ' $(repo-forked)'
+                    if ('remote' in rest) icon += ' $(globe)'
+                    return {
+                        displayName: `${icon} ${owner}/${name}`,
+                        dirName,
+                        repoSlug: `${owner}/${name}`,
+                        ...(getExtensionSetting('showFolderNames') === 'always' && dirName ? { description: `$(folder) ${dirName}` } : {}),
+                    }
+                }),
             )
         }
 
@@ -147,7 +162,7 @@ export const getDirectoriesToShow = async (
                 .filter(Boolean) as string[]
             directories.push(
                 ...reposWithoutRemote.map(name => ({
-                    displayName: `${icons.nonRemote} ${name}`,
+                    displayName: `${ICONS.nonRemote} ${name}`,
                     dirName: name,
                 })),
             )
@@ -157,7 +172,7 @@ export const getDirectoriesToShow = async (
     if (selectedDirs['non-git'])
         directories.push(
             ...nonGitDirs.map(name => ({
-                displayName: `${icons.nonGit} ${name}`,
+                displayName: `${ICONS.nonGit} ${name}`,
                 dirName: name,
             })),
         )
@@ -165,8 +180,6 @@ export const getDirectoriesToShow = async (
     if (getExtensionSetting('showFolderNames') === 'onDuplicates')
         for (const [, indexes] of findDuplicatesBy(directories, ({ displayName }) => displayName))
             for (const i of indexes) directories[i].description = directories[i].dirName
-
-    if (getExtensionSetting('reverseList')) directories.reverse()
 
     return {
         cwd,

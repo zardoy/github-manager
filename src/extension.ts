@@ -1,10 +1,9 @@
-import { Octokit } from '@octokit/rest'
 import { Except } from 'type-fest'
 import { CommandHandler, extensionCtx, getExtensionSetting, registerAllExtensionCommands, RegularCommands, showQuickPick } from 'vscode-framework'
 import { initializeGithubAuth } from './auth'
 import { DirectoryType, getDirectoriesToShow } from './core/getDirs'
 import { getReposDir } from './core/git'
-import { openNewDirectory } from './core/open'
+import { cloneOrOpenDirectory } from './core/open'
 import { openAtGithub } from './openAtGithub'
 
 export async function activate() {
@@ -42,11 +41,14 @@ export async function activate() {
             openNonGitDirectory: 'non-git',
             openNonRemoteRepository: 'non-remote',
         }
-        await openNewDirectory({
-            getDirectories: async () =>
+        await cloneOrOpenDirectory({
+            getDirectories: async abortSignal =>
                 getDirectoriesToShow(
                     getReposDir(command as OpenCommands),
                     command === 'openEverything' ? { 'non-git': true, 'non-remote': true, github: true } : { [commandDirectoryTypeMap[command]]: true },
+                    command === 'openGithubRepository' || command === 'openForkedGithubRepository',
+                    command === 'openForkedGithubRepository' || command === 'openClonedForkedGithubRepository',
+                    abortSignal,
                 ),
             quickPickOptions: {
                 title: `Select ${titleMainPart[command]} to open`,
