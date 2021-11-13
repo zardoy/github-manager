@@ -1,13 +1,15 @@
 import { Octokit } from '@octokit/rest'
 import { Except } from 'type-fest'
 import { CommandHandler, extensionCtx, getExtensionSetting, registerAllExtensionCommands, RegularCommands, showQuickPick } from 'vscode-framework'
+import { initializeGithubAuth } from './auth'
 import { DirectoryType, getDirectoriesToShow } from './core/getDirs'
 import { getReposDir } from './core/git'
 import { openNewDirectory } from './core/open'
 import { openAtGithub } from './openAtGithub'
 
 export async function activate() {
-    if (getExtensionSetting('globallySortByRecentlyOpened')) extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
+    void initializeGithubAuth()
+    if (getExtensionSetting('boostRecentlyOpened')) extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
 
     const openCommandHandler: CommandHandler = async ({ command }, args = {}) => {
         interface CommandArgs {

@@ -67,7 +67,8 @@ export const openNewDirectory = async ({ getDirectories, quickPickOptions }: Opt
         forceOpenNewWindow = result
     }
 
-    await extensionCtx.globalState.update('lastGithubRepos', [...history, repoSlug].slice(0, HISTORY_ITEMS_LIMIT))
+    if (getExtensionSetting('boostRecentlyOpened'))
+        await extensionCtx.globalState.update('lastGithubRepos', [...history, repoSlug].slice(0, HISTORY_ITEMS_LIMIT))
     await openSelectedDirectory(join(cwd, dirName), forceOpenNewWindow)
 }
 

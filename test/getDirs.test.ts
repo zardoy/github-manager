@@ -9,6 +9,7 @@ const getDirectoriesToShow = async (dirs: Parameters<typeof getDirs.getDirectori
     const { cwd, ...result } = await getDirs.getDirectoriesToShow(join(__dirname, './fixtures/mixed-dirs'), dirs)
     return { ...result }
 }
+const ALL_DIRS_TYPES = { github: true, 'non-git': true, 'non-remote': true }
 
 const initialSettings: Settings = {
     'ignore.dirNameRegex': '',
@@ -25,8 +26,11 @@ const initialSettings: Settings = {
     'onlineRepos.sortBy': 'lastPushed',
 }
 let mockedSettings: Settings = { ...initialSettings }
+const resetSettings = () => {
+    mockedSettings = { ...initialSettings }
+}
 
-// mock extensionCtx only if sortBy is recentlyOpened
+// mock extensionCtx only if boostRecentlyOpened is true
 
 beforeAll(() => {
     jest.spyOn(vscodeFramework, 'getExtensionSetting').mockImplementation(setting => mockedSettings[setting])
@@ -128,18 +132,12 @@ Object {
 `)
 })
 
-test('Get GitHub repos sorted by recentlyOpened', async () => {
-    mockedSettings.sortBy = 'recentlyOpened'
-    // @ts-expect-error
-    // eslint-disable-next-line no-import-assign
-    injectecVars.extensionCtx = {
-        globalState: {
-            get() {
-                return ['another-owner/something-else-here', 'test-author/vscode-extension-name']
-            },
-        },
-    }
-    expect(await getDirectoriesToShow({ github: true })).toMatchInlineSnapshot(`
+test.each([
+    {
+        description: 'GitHub repos only',
+        dirs: { github: true },
+        expected: result =>
+            expect(result).toMatchInlineSnapshot(`
 Object {
   "directories": Array [
     Object {
@@ -179,16 +177,32 @@ Object {
     "test-author/vscode-extension-name",
   ],
 }
-`)
-    mockedSettings.sortBy = 'byOwner'
+`),
+    },
+    {
+        description: 'All dirs',
+        dirs: ALL_DIRS_TYPES,
+        expected: result => expect(result).toMatchInlineSnapshot(),
+    },
+])(`Boosts recently opened with $description`, async ({ dirs, expected }) => {
+    mockedSettings.boostRecentlyOpened = true
     // @ts-expect-error
-    // eslint-disable-next-line no-import-assign
+    injectecVars.extensionCtx = {
+        globalState: {
+            get() {
+                return ['another-owner/something-else-here', 'test-author/vscode-extension-name']
+            },
+        },
+    }
+    expected(await getDirectoriesToShow(dirs))
+    resetSettings()
+    // @ts-expect-error
     injectecVars.extensionCtx = undefined
 })
 
 // TOOD with ignore dirs
 test('Get everything', async () => {
-    expect(await getDirectoriesToShow({ github: true, 'non-git': true, 'non-remote': true })).toMatchInlineSnapshot(`
+    expect(await getDirectoriesToShow(ALL_DIRS_TYPES)).toMatchInlineSnapshot(`
 Object {
   "directories": Array [
     Object {
@@ -235,3 +249,11 @@ Object {
 }
 `)
 })
+
+test('Get everything with ignore dirs setting', async () => {
+    mockedSettings['ignore.dirNameRegex'] = '(non)|(github)'
+    expect(await getDirectoriesToShow(ALL_DIRS_TYPES)).toMatchInlineSnapshot()
+    resetSettings()
+})
+
+// 'another-author/some-forked-repo'

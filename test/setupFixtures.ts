@@ -33,6 +33,16 @@ const dirs: Record<string, (fromPath: FromPath) => any> = {
     githubDuplicate: createWithGitRemote('git+ssh://git@github.com/another-owner/something-else-here.git'),
     githubDuplicate2: createWithGitRemote('git+ssh://git@github.com/another-owner/something-else-here.git'),
     'github-top': createWithGitRemote('git+ssh://git@github.com/another-owner/a.git'),
+    async 'github-fork'(fromDir) {
+        await fsExtra.promises.writeFile(
+            fromDir('.git/config'),
+            `[remote "origin"]
+        url=https://github.com/awesome-contributor/vscode.git
+    [remote "upstream"]
+        url=https://github.com/microsoft/vscode.git`,
+        )
+    },
+    'github-without-upstream-remote': createGithubRepository('another-author/some-forked-repo'),
     // Ignored! HAHA
     gitlabRepo: createWithGitRemote('https://gitlab.com/foo/bar/baz.git'),
     async nonRemote(fromDir) {

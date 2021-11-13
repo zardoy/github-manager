@@ -107,7 +107,7 @@
                 },
                 "forkDetectionMethod": {
                     "type": "string",
-                    "description": "How to detect clonned repo forks",
+                    "description": "How to detect forked clonned repos. Remote commands always show forked repos",
                     "enum": [
                         "alwaysOnline",
                         "fallback",

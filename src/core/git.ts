@@ -24,9 +24,17 @@ export const getDirsFromCwd = async (cwd: string) => {
 export interface GithubRepo {
     owner: string
     name: string
-    /** Relative directory path from defaultCloneDirectory */
     forked: boolean
+    /** Relative directory path from defaultCloneDirectory */
     dirName: string
+}
+
+export interface RemoteGithubRepo {
+    remote: true
+    owner: string
+    name: string
+    forked: boolean
+    dirName?: string
 }
 
 export function getReposDir(openCommand: OpenCommands) {

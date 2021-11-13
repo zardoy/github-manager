@@ -8,8 +8,8 @@ import ini from 'ini'
 import isOnline from 'is-online'
 import { fromUrl } from 'hosted-git-info'
 import { Octokit } from '@octokit/rest'
-import { getAuthorizedOctokit } from '../auth'
-import { getDirsFromCwd, GithubRepo } from './git'
+import { getAllGithubRepos, getAuthorizedOctokit } from '../auth'
+import { getDirsFromCwd, GithubRepo, RemoteGithubRepo } from './git'
 import { findDuplicatesBy, normalizeRegex } from './util'
 
 const icons = {
@@ -69,6 +69,7 @@ export const getDirectoriesToShow = async (
                 forkDetectionMethod = (await isOnline()) ? 'alwaysOnline' : 'upstreamRemote'
             }
 
+            /** local repos */
             let reposWithGithubInfo = dirsRemotesInfo
                 .map((state, index): GithubRepo | undefined => {
                     // TODO-low log failures
@@ -89,28 +90,25 @@ export const getDirectoriesToShow = async (
                 })
                 .filter(Boolean) as GithubRepo[]
 
-            if (openWithRemotesCommand) {
-                const reposType = getExtensionSetting('onlineRepos.reposType')
-                const showArchived = getExtensionSetting('onlineRepos.showArchived')
-                const sortBy = getExtensionSetting('onlineRepos.sortBy')
-                // TODO! only 100 is fetched
-                let topQuickPicks = (
-                    await (
-                        await getAuthorizedOctokit()
-                    ).repos.listForAuthenticatedUser({
-                        sort: sortBy === 'lastPushed' ? 'pushed' : sortBy === 'lastUpdated' ? 'updated' : sortBy === 'fullName' ? 'full_name' : sortBy,
-                        type: reposType,
-                        per_page: 100,
-                    })
-                ).data
-                    .filter(({ archived }) => archived && showArchived)
-                    .map(({ full_name, owner, name }): DirectoryDisplayItem => {
-                        const clonedIndex = reposWithGithubInfo.findIndex(r => r.owner === owner.login && r.name === name)
-                        const isCloned = clonedIndex >= 0
-                        if (isCloned) reposWithGithubInfo.splice(clonedIndex, 1)
-                        return { displayName: `$(github-inverted) ${isCloned ? '' : '$(globe)'} ${full_name}`, repoSlug: full_name }
-                    })
+            if (forkDetectionMethod === 'alwaysOnline' && !openWithRemotesCommand) {
+                const allForks = (await getAllGithubRepos()).filter(({ fork }) => fork)
+                reposWithGithubInfo = reposWithGithubInfo.map(repo => ({
+                    ...repo,
+                    forked: allForks.some(({ owner, name }) => owner.login === repo.owner && name === repo.name),
+                }))
             }
+
+            let topQuickPicks: RemoteGithubRepo[] = []
+            if (openWithRemotesCommand)
+                // TODO! only 100 is fetched
+                /** remote + cloned that found on remote */
+                topQuickPicks = (await getAllGithubRepos()).map(({ owner, name, fork: isFork }) => {
+                    const clonedIndex = reposWithGithubInfo.findIndex(r => r.owner === owner.login && r.name === name)
+                    const clonedRepo = reposWithGithubInfo[clonedIndex]
+                    if (clonedRepo) reposWithGithubInfo.splice(clonedIndex, 1)
+                    return { remote: true, dirName: clonedRepo && clonedRepo.dirName, forked: clonedRepo?.forked || isFork, owner: owner.login, name }
+                })
+            // displayName: `$(github-inverted) ${isCloned ? '' : '$(globe)'} ${full_name}`
 
             // desc
             const reposByOwner = Object.values(_.groupBy(reposWithGithubInfo, r => r.owner)).sort((a, b) => b.length - a.length)
@@ -118,14 +116,15 @@ export const getDirectoriesToShow = async (
             const reposByOwnerSorted = reposByOwner.map(repos => _.sortBy(repos, r => r.name))
             reposWithGithubInfo = reposByOwnerSorted.flat(1)
 
+            const allReposPicks = [...topQuickPicks, ...reposWithGithubInfo]
             if (getExtensionSetting('boostRecentlyOpened')) {
                 history = extensionCtx.globalState.get('lastGithubRepos') ?? []
                 for (const repoSlug of history) {
                     const [owner, name] = repoSlug.split('/')
-                    const repoIndex = reposWithGithubInfo.findIndex(repo => repo.owner === owner && repo.name === name)
+                    const repoIndex = allReposPicks.findIndex(repo => repo.owner === owner && repo.name === name)
                     if (repoIndex === -1) continue
-                    reposWithGithubInfo.unshift(reposWithGithubInfo[repoIndex])
-                    reposWithGithubInfo.splice(repoIndex + 1, 1)
+                    allReposPicks.unshift(allReposPicks[repoIndex])
+                    allReposPicks.splice(repoIndex + 1, 1)
                 }
             }
 
@@ -133,7 +132,7 @@ export const getDirectoriesToShow = async (
             reposWithGithubInfo = reposWithGithubInfo.filter(({ owner }) => !ignoreUsers.includes(owner))
 
             directories.push(
-                ...reposWithGithubInfo.map(({ dirName, name, owner }) => ({
+                ...allReposPicks.map(({ dirName, name, owner }) => ({
                     displayName: `${icons.github} ${owner}/${name}`,
                     dirName,
                     repoSlug: `${owner}/${name}`,
