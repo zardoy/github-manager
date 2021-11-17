@@ -31,9 +31,9 @@ export async function activate() {
             openClonedGithubRepository: 'cloned repository',
             openNonGitDirectory: 'non-git directory',
             openNonRemoteRepository: 'non-remote git directory',
-            openEverything: 'directory or repository',
+            openAnything: 'directory or repository',
         }
-        const commandDirectoryTypeMap: Record<Exclude<OpenCommands, 'openEverything'>, DirectoryType> = {
+        const commandDirectoryTypeMap: Record<Exclude<OpenCommands, 'openAnything'>, DirectoryType> = {
             openGithubRepository: 'github',
             openClonedGithubRepository: 'github',
             openNonGitDirectory: 'non-git',
@@ -45,7 +45,7 @@ export async function activate() {
                 title: `Select ${titleMainPart[command]} to open`,
             },
             initiallyShowForks: showForks,
-            selectedDirs: command === 'openEverything' ? { 'non-git': true, 'non-remote': true, github: true } : { [commandDirectoryTypeMap[command]]: true },
+            selectedDirs: command === 'openAnything' ? { 'non-git': true, 'non-remote': true, github: true } : { [commandDirectoryTypeMap[command]]: true },
             // only applies for commands that open repositories
             openWithRemotesCommand: command === 'openGithubRepository',
         })
@@ -53,7 +53,7 @@ export async function activate() {
 
     const openCommands: OpenCommands[] = [
         'openClonedGithubRepository',
-        'openEverything',
+        'openAnything',
         'openGithubRepository',
         'openNonGitDirectory',
         'openNonRemoteRepository',

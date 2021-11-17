@@ -1,5 +1,4 @@
 import { graphql } from '@octokit/graphql'
-import { Octokit, RestEndpointMethodTypes } from '@octokit/rest'
 import vscode from 'vscode'
 import { getExtensionSetting, GracefulCommandError } from 'vscode-framework'
 

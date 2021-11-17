@@ -37,8 +37,8 @@
                 "title": "Open Non-Remote Repository..."
             },
             {
-                "command": "openEverything",
-                "title": "Open Non-Git Directory Or Repository (everything)..."
+                "command": "openAnything",
+                "title": "Open Non-Git Directory Or Repository (anything)..."
             },
             {
                 "command": "openAtGithub",
