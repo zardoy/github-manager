@@ -25,12 +25,10 @@ const initialSettings: Settings = {
     whereToOpen: 'newWindowIfNotEmpty',
     showFolderNames: 'onDuplicates',
     enableAuthentication: false,
-    // we don't test @octokit/rest?
-    forkDetectionMethod: 'upstreamRemote',
     'onlineRepos.clonedDirFormat': 'repoName',
     'onlineRepos.reposType': 'all',
     'onlineRepos.showArchived': false,
-    'onlineRepos.sortBy': 'lastPushed',
+    'onlineRepos.orderBy': 'PUSHED_AT',
 }
 let mockedSettings: Settings = { ...initialSettings }
 const resetSettings = () => {

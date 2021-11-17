@@ -97,21 +97,6 @@
                     "description": "Whether to enable inegration with your GitHub accout via authentication\nDisable to work with cloned repos only",
                     "default": true
                 },
-                "forkDetectionMethod": {
-                    "type": "string",
-                    "description": "How to detect forked clonned repos. Remote commands always show forked repos",
-                    "enum": [
-                        "alwaysOnline",
-                        "fallback",
-                        "upstreamRemote"
-                    ],
-                    "markdownEnumDescriptions": [
-                        "Not available when #enableAuthentication# is `false`. Requires authentication and internet connection. Most accurate",
-                        "Use `alwaysOnline` and `upstreamRemote` when no internet connection",
-                        "Count repo as fork if it has `remote` upstream in config"
-                    ],
-                    "default": "upstreamRemote"
-                },
                 "onlineRepos.showArchived": {
                     "type": "boolean",
                     "description": "Whether to show archived non-cloned repos",

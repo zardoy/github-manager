@@ -90,18 +90,6 @@ export const getDirectoriesToShow = async ({
         const dirsRemotesInfo = await Promise.allSettled(gitDirs.map(async dir => getDirRemotes(path.join(cwd, dir))))
 
         if (selectedDirs.github) {
-            let forkDetectionMethod = getExtensionSetting('forkDetectionMethod')
-            if (forkDetectionMethod === 'alwaysOnline') {
-                if (!getExtensionSetting('enableAuthentication'))
-                    throw new GracefulCommandError(
-                        `${getExtensionSettingId('forkDetectionMethod')} with set to alwaysOnline requires ${getExtensionSettingId(
-                            'enableAuthentication',
-                        )} to be enabled`,
-                    )
-            } else if (forkDetectionMethod === 'fallback') {
-                forkDetectionMethod = (await isOnline()) ? 'alwaysOnline' : 'upstreamRemote'
-            }
-
             /** local repos */
             let reposWithGithubInfo = dirsRemotesInfo
                 .map((state, index): GithubRepo | undefined => {
@@ -112,7 +100,7 @@ export const getDirectoriesToShow = async ({
                         const remoteParsed = fromUrl(remotes[defaultRemoteName])
                         if (!remoteParsed || remoteParsed.domain !== 'github.com') return undefined
                         return {
-                            forked: forkDetectionMethod === 'upstreamRemote' ? 'upstream' in remotes : false,
+                            forked: 'upstream' in remotes,
                             dirName: gitDirs[index],
                             name: remoteParsed.project,
                             owner: remoteParsed.user,
@@ -122,18 +110,6 @@ export const getDirectoriesToShow = async ({
                     return undefined
                 })
                 .filter(Boolean) as GithubRepo[]
-
-            if (forkDetectionMethod === 'alwaysOnline' && !openWithRemotesCommand) {
-                // Some remotes might not have remote branch (for some reason).
-                // Get user's forks from online and mark as forks
-                // But only if user chooses to open cloned repos
-                // Remote have their forks detection method
-                const allForks = (await getAllGithubRepos(abortSignal)).filter(({ fork }) => fork)
-                reposWithGithubInfo = reposWithGithubInfo.map(repo => ({
-                    ...repo,
-                    forked: allForks.some(({ owner, name }) => owner.login === repo.owner && name === repo.name),
-                }))
-            }
 
             let topQuickPicks: RemoteGithubRepo[] = []
             if (openWithRemotesCommand)
