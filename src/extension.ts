@@ -1,19 +1,10 @@
 import { Except } from 'type-fest'
-import {
-    CommandHandler,
-    extensionCtx,
-    getExtensionSetting,
-    registerActiveDevelopmentCommand,
-    registerAllExtensionCommands,
-    RegularCommands,
-} from 'vscode-framework'
-import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill.js'
-import { getAllGithubRepos, initializeGithubAuth } from './auth'
+import { CommandHandler, extensionCtx, getExtensionSetting, registerAllExtensionCommands, RegularCommands } from 'vscode-framework'
+import { initializeGithubAuth } from './auth'
 import { DirectoryType } from './core/getDirs'
 import { getReposDir } from './core/git'
 import { cloneOrOpenDirectory } from './core/open'
 import { openAtGithub } from './openAtGithub'
-import { uniqBy } from 'lodash'
 
 export async function activate() {
     void initializeGithubAuth()

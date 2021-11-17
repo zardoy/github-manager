@@ -13,7 +13,7 @@ export const openAtGithub: CommandHandler = async (_, { path = '', remoteName = 
             const remoteUrl = ini.decode(configString)[`remote "${remoteName}"`]?.url
             const remote = fromUrl(remoteUrl)
             if (!remote) throw new GracefulCommandError(`Bad remote url for ${remoteName}: ${remoteUrl}`)
-            if (remote.domain !== 'github.com') throw new Error('Only GitHub repositories are supported')
+            if (remote.domain !== 'github.com') throw new GracefulCommandError('Only GitHub repositories are supported')
             workspaceRemoteMap.set(workspace.index, remote)
         } catch {}
     }

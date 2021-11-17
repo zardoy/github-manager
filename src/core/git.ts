@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { fromUrl } from 'hosted-git-info'
 import vscode from 'vscode'
 import { getExtensionCommandId, GracefulCommandError } from 'vscode-framework'
 import type { OpenCommands } from '../extension'
@@ -46,4 +47,23 @@ export function getReposDir(openCommand: OpenCommands) {
             ],
         })
     return gitDefaultDir
+}
+
+export function parseGithubRemoteUrl(remoteUrl: string) {
+    const remoteParsed = fromUrl(remoteUrl)
+    if (!remoteParsed || remoteParsed.domain !== 'github.com') return undefined
+
+    return {
+        owner: remoteParsed.user,
+        name: remoteParsed.project,
+    }
+}
+
+export function getRepoSlug({ owner, name }: Record<'owner' | 'name', string>) {
+    return `${owner}/${name}`
+}
+
+export function getRepoFromSlug(slug: string) {
+    const [owner, name] = slug.split('/')
+    return { owner, name }
 }
