@@ -193,7 +193,7 @@ export async function* getDirectoriesToShow({
                         const icon = `${openWithRemotesCommand && !hasOnRemote ? ICONS.githubNoAccess : ICONS.github}${
                             hasOnRemote && rest.remote ? ICONS.remote : ICONS.folder
                         }`
-                        // maybe should return it back?
+                        // maybe return it back?
                         // ${forkSlug ? ICONS.fork : '$(dash)'}
                         let description = ''
                         if (forkSlug) description += `${ICONS.fork} ${forkSlug} `
@@ -220,10 +220,10 @@ export async function* getDirectoriesToShow({
                             // TODO patch util fn
                             if (dir.repoSlug === undefined || !('dirName' in dir)) continue
                             if (!allDirsPicks[i].description) allDirsPicks[i].description = ''
-                            allDirsPicks[i].description += `${ICONS.folder} ${dir.dirName}`
+                            allDirsPicks[i].description += ` ${ICONS.folder} ${dir.dirName}`
+                            allDirsPicks[i].description = allDirsPicks[i].description!.trim()
                         }
 
-                // TODO yeldRepos
                 yield { directories: allDirsPicks }
             }
 

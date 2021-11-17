@@ -44,6 +44,33 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
         showForks: true as Options['initiallyShowForks'],
     }))
 
+    /** Items without filter */
+    let sourceItems: DirectoryDisplayItem[] = []
+    // TODO into state
+    const triggerItemsUpdate = () => {
+        // Do not reset selected index to the start
+        // This should be default behavior...
+        const activeItemSlug = quickPick.activeItems[0]?.value.repoSlug
+        quickPick.items = sourceItems
+            .map(({ displayName, description, ...value }) => {
+                // TODO more clean solution
+                const isFork = description?.includes('$(repo-forked)')
+                if (isFork && buttonsState.getState().showForks === false) return undefined!
+                if (!isFork && buttonsState.getState().showForks === 'only') return undefined!
+
+                return {
+                    label: displayName,
+                    value,
+                    description,
+                }
+            })
+            .filter(a => a !== undefined)
+        const newActiveItem = activeItemSlug && quickPick.items.find(({ value: { repoSlug } }) => activeItemSlug === repoSlug)
+        if (newActiveItem) quickPick.activeItems = [newActiveItem]
+    }
+
+    type QuickPickButton = vscode.QuickInputButton & { action: 'toggle-forks-visibility' | 'open-github' | 'reveal-in-explorer' }
+
     buttonsState.subscribe(state => {
         const getButtonIcon = (variant: string) =>
             Object.fromEntries(
@@ -63,16 +90,45 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
                 tooltip: 'Only forks are visible',
             },
         }
-        quickPick.buttons = [stateButtons[String(state.showForks)]]
+        // TODO hide them
+        const quickPickButtons: QuickPickButton[] = [
+            {
+                iconPath: new vscode.ThemeIcon('folder'),
+                // no web target
+                tooltip: `Reveal in ${process.platform === 'darwin' ? 'finder' : 'explorer'}`,
+                action: 'reveal-in-explorer',
+            },
+        ]
+        if (Object.keys(selectedDirs).includes('github'))
+            quickPickButtons.push(
+                {
+                    iconPath: new vscode.ThemeIcon('globe'),
+                    tooltip: 'Open on GitHub',
+                    action: 'open-github',
+                },
+                { ...stateButtons[String(state.showForks)], action: 'toggle-forks-visibility' },
+            )
+        quickPick.buttons = quickPickButtons
     })
     buttonsState.setState({ showForks: initiallyShowForks })
     // quickPick.ignoreFocusOut = true
-    quickPick.onDidTriggerButton(() => {
-        // TODO more buttons
-        const statesCycle = [true, 'only', false] as Array<Options['initiallyShowForks']>
-        buttonsState.setState(({ showForks }) => ({
-            showForks: statesCycle[statesCycle.indexOf(showForks) + 1] ?? statesCycle[0],
-        }))
+    //@ts-expect-error TODO
+    quickPick.onDidTriggerButton(async (button: QuickPickButton) => {
+        const { action } = button
+        if (action === 'open-github' || action === 'reveal-in-explorer') {
+            const activeItem = quickPick.activeItems[0]
+            if (!activeItem) return
+            if (action === 'open-github' && activeItem.value.repoSlug)
+                await vscode.env.openExternal(vscode.Uri.parse(`https://github.com/${activeItem.value.repoSlug}`))
+            else if (action === 'reveal-in-explorer' && 'dirName' in activeItem.value)
+                await vscode.env.openExternal(vscode.Uri.file(join(cwd, activeItem.value.dirName)))
+        } else {
+            const statesCycle = [true, 'only', false] as Array<Options['initiallyShowForks']>
+            buttonsState.setState(({ showForks }) => ({
+                showForks: statesCycle[statesCycle.indexOf(showForks) + 1] ?? statesCycle[0],
+            }))
+            triggerItemsUpdate()
+        }
     })
 
     quickPick.show()
@@ -103,19 +159,13 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
         console.time('Get all directories')
         void (async () => {
             for await (const directoriesUntyped of dirsGenerator) {
-                // Do not reset selected index to the start
-                const activeItemSlug = quickPick.activeItems[0]?.value.repoSlug
-                quickPick.items = (directoriesUntyped as GetDirsYields<'directories'>).directories.map(({ displayName, description, ...value }) => ({
-                    label: displayName,
-                    value,
-                    description,
-                }))
-                // repostiory can't be removed so find with non-null assertion
-                if (activeItemSlug) quickPick.activeItems = [quickPick.items.find(({ value: { repoSlug } }) => activeItemSlug === repoSlug)!]
+                sourceItems = (directoriesUntyped as GetDirsYields<'directories'>).directories
+                triggerItemsUpdate()
             }
 
             console.timeEnd('Get all directories')
             quickPick.busy = false
+            // TODO! no items item
         })()
     })
     abortController.abort()

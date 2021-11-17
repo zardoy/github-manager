@@ -10,7 +10,7 @@ export async function activate() {
     void initializeGithubAuth()
     if (getExtensionSetting('boostRecentlyOpened')) extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
 
-    const openCommandHandler: CommandHandler = async ({ command: commandUntyped }, { showForks = false } = {}) => {
+    const openCommandHandler: CommandHandler = async ({ command: commandUntyped }, { showForks = true } = {}) => {
         const command = commandUntyped as OpenCommands
         /* UNIMPLEMENTED */
         interface CommandArgs {

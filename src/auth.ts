@@ -16,11 +16,6 @@ const signIn = async () => {
     }
 }
 
-// export async function getAuthorizedOctokit() {
-//     const token = await signIn()
-//     return new Octokit({ auth: token })
-// }
-
 export async function getAuthorizedGraphqlOctokit() {
     const token = await signIn()
     return graphql.defaults({
@@ -41,8 +36,6 @@ interface RepoResponse {
 }
 
 export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerator<RepoResponse[]> {
-    // safe since vscode does perform validation
-    // TODO
     const orderBy = getExtensionSetting('onlineRepos.orderBy')
     const showArchived = getExtensionSetting('onlineRepos.showArchived')
     const reposType = getExtensionSetting('onlineRepos.reposType')
