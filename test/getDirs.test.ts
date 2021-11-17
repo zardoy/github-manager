@@ -7,13 +7,17 @@ import * as injectecVars from 'vscode-framework/build/framework/injected'
 import * as getDirs from '../src/core/getDirs'
 
 const getDirectoriesToShow = async (selectedDirs: getDirs.GetDirsParams['selectedDirs'], includeRemote = false) => {
-    const { ...result } = await getDirs.getDirectoriesToShow({
+    const dirsGenerator = getDirs.getDirectoriesToShow({
         cwd: join(__dirname, './fixtures/mixed-dirs'),
         abortSignal: new AbortController().signal,
         openWithRemotesCommand: includeRemote,
         selectedDirs,
     })
-    return { ...result }
+    const { history } = (await dirsGenerator.next()).value as getDirs.GetDirsYields<'history'>
+    let lastDirectoriesResult: getDirs.GetDirsYields<'directories'> = undefined!
+    for await (const dirs of dirsGenerator) lastDirectoriesResult = dirs as getDirs.GetDirsYields<'directories'>
+
+    return { directories: lastDirectoriesResult, history }
 }
 
 const ALL_DIRS_TYPES = { github: true, 'non-git': true, 'non-remote': true }
@@ -45,10 +49,10 @@ beforeAll(() => {
 
 test('Get GitHub repos', async () => {
     const result = await getDirectoriesToShow({ github: true })
-    expect(result.directories).toContainEqual<typeof result['directories'][number]>({
+    expect(result.directories).toContainEqual({
         dirName: 'github-fork',
         repoSlug: 'awesome-contributor/vscode',
-        displayName: expect.stringContaining('fork'), // has fork icon
+        description: expect.stringContaining('fork'), // has fork icon
     })
     expect(result).toMatchInlineSnapshot(`
 Object {

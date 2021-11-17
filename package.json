@@ -2,7 +2,7 @@
     "name": "github-manager",
     "displayName": "GitHub Manager",
     "publisher": "zardoy",
-    "description": "Fastest way to switch between cloned GitHub repos",
+    "description": "THE FASTEST way to switch between cloned GitHub repos",
     "icon": "resources/icon.png",
     "version": "0.0.1",
     "categories": [
@@ -199,6 +199,7 @@
         "abortcontroller-polyfill": "^1.7.3",
         "esbuild-runner": "^2.2.1",
         "execa": "^5.1.1",
+        "filesize": "^8.0.6",
         "find-up": "^6.2.0",
         "git-remote-origin-url": "^3.1.0",
         "github-remote-info": "^1.0.3",

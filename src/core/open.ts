@@ -5,7 +5,8 @@ import execa from 'execa'
 import createStore from 'zustand/vanilla'
 import { Except } from 'type-fest'
 import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill.js'
-import { DirectoryDisplayItem, getDirectoriesToShow, GetDirsParams } from './getDirs'
+import fileSize from 'filesize'
+import { DirectoryDisplayItem, getDirectoriesToShow, GetDirsParams, GetDirsYields } from './getDirs'
 
 const askOpenInNewWindow = async () =>
     showQuickPick([
@@ -67,6 +68,7 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
     buttonsState.setState({ showForks: initiallyShowForks })
     // quickPick.ignoreFocusOut = true
     quickPick.onDidTriggerButton(() => {
+        // TODO more buttons
         const statesCycle = [true, 'only', false] as Array<Options['initiallyShowForks']>
         buttonsState.setState(({ showForks }) => ({
             showForks: statesCycle[statesCycle.indexOf(showForks) + 1] ?? statesCycle[0],
@@ -75,24 +77,17 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
 
     quickPick.show()
     const abortController = new AbortController()
-    const { dispose: disposePrevOnDispose } = quickPick.onDidHide(() => {
-        abortController.abort()
-        quickPick.dispose()
-    })
-    console.time('Get Directories')
-    const { directories, history } = await getDirectoriesToShow({
+
+    const dirsGenerator = getDirectoriesToShow({
         cwd,
         selectedDirs,
         openWithRemotesCommand,
         abortSignal: abortController.signal,
-    }).finally(() => console.timeEnd('Get Directories'))
-
-    quickPick.items = directories.map(({ displayName, description, ...value }) => ({ label: displayName, value, description }))
-    quickPick.busy = false
+    })
+    const { history } = (await dirsGenerator.next()).value as GetDirsYields<'history'>
 
     // copied from vscode-extra
     const selectedItem = await new Promise<ItemType | undefined>(resolve => {
-        disposePrevOnDispose()
         quickPick.onDidHide(() => {
             resolve(undefined)
             quickPick.dispose()
@@ -104,7 +99,27 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
             resolve(selectedItems[0]?.value)
             quickPick.hide()
         })
+
+        console.time('Get all directories')
+        void (async () => {
+            for await (const directoriesUntyped of dirsGenerator) {
+                // Do not reset selected index to the start
+                const activeItemSlug = quickPick.activeItems[0]?.value.repoSlug
+                quickPick.items = (directoriesUntyped as GetDirsYields<'directories'>).directories.map(({ displayName, description, ...value }) => ({
+                    label: displayName,
+                    value,
+                    description,
+                }))
+                // repostiory can't be removed so find with non-null assertion
+                if (activeItemSlug) quickPick.activeItems = [quickPick.items.find(({ value: { repoSlug } }) => activeItemSlug === repoSlug)!]
+            }
+
+            console.timeEnd('Get all directories')
+            quickPick.busy = false
+        })()
     })
+    abortController.abort()
+    console.timeEnd('Get all directories')
     if (!selectedItem) return
 
     if (whereToOpen === 'ask(after)') {
@@ -113,13 +128,26 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
         forceOpenNewWindow = result
     }
 
-    if (getExtensionSetting('boostRecentlyOpened') && selectedItem.repoSlug)
+    if (history && selectedItem.repoSlug)
         await extensionCtx.globalState.update('lastGithubRepos', [...history, selectedItem.repoSlug].slice(0, HISTORY_ITEMS_LIMIT))
 
-    if (selectedItem.type === 'local') {
+    if ('dirName' in selectedItem && selectedItem.dirName) {
         await openSelectedDirectory(join(cwd, selectedItem.dirName), forceOpenNewWindow)
-    } else {
-        const { repoSlug } = selectedItem
+    } else if (selectedItem.type === 'remote') {
+        let shallowClone = false
+        const REPO_SIZE_THRESHOLD_KB = 50 * 1024 // 50MG
+        const { repoSlug, diskUsage } = selectedItem
+        if (diskUsage > REPO_SIZE_THRESHOLD_KB) {
+            const response = await vscode.window.showWarningMessage(
+                'Cloning repository is big',
+                { modal: true, detail: `Repository size on GitHub is ${fileSize(diskUsage)}. Use shallow clone (--depth=1)?` },
+                'Yes',
+                'No',
+            )
+            if (response === undefined) return
+            if (response === 'Yes') shallowClone = true
+        }
+
         const cloneUrl = `https://github.com/${repoSlug}.git`
         try {
             const [owner, name] = repoSlug.split('/')
@@ -128,15 +156,17 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
                 { location: vscode.ProgressLocation.Notification, title: `Cloning ${cloneUrl}`, cancellable: true },
                 async (_, token) => {
                     // TODO show progress
-                    const process = execa('git', ['clone', cloneUrl, cloneDirName], { cwd })
+                    const process = execa('git', ['clone', cloneUrl, cloneDirName, ...(shallowClone ? ['--depth=1'] : [])], { cwd })
                     token.onCancellationRequested(() => process.kill())
                     await process
                 },
             )
-            await openSelectedDirectory(cloneDirName, forceOpenNewWindow)
+            await openSelectedDirectory(join(cwd, cloneDirName), forceOpenNewWindow)
         } catch (error) {
             throw new GracefulCommandError(`Failed to clone ${cloneUrl}: ${error.message}`, { modal: true })
         }
+    } else {
+        throw new Error('Unknown directory type')
     }
 }
 

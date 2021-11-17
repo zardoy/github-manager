@@ -31,7 +31,17 @@ export async function getAuthorizedGraphqlOctokit() {
     })
 }
 
-export async function getAllGithubRepos(abortSignal: AbortSignal) {
+interface RepoResponse {
+    nameWithOwner: string
+    /** kb */
+    diskUsage: number
+    isArchived: boolean
+    parent: null | {
+        nameWithOwner: string
+    }
+}
+
+export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerator<RepoResponse[]> {
     // safe since vscode does perform validation
     // TODO
     const orderBy = getExtensionSetting('onlineRepos.orderBy')
@@ -42,15 +52,6 @@ export async function getAllGithubRepos(abortSignal: AbortSignal) {
     const privacy = reposType === 'private' || reposType === 'public' ? reposType.toUpperCase() : null
 
     const graphql = await getAuthorizedGraphqlOctokit()
-    interface RepoResponse {
-        nameWithOwner: string
-        /** kb */
-        diskUsage: number
-        isArchived: boolean
-        parent: null | {
-            nameWithOwner: string
-        }
-    }
     let repos: RepoResponse[] = []
     let nextCursor: string | undefined
     for (let i = 1; true; i++) {
@@ -97,9 +98,8 @@ export async function getAllGithubRepos(abortSignal: AbortSignal) {
         if (!showArchived) newRepos = newRepos.filter(({ isArchived }) => !isArchived)
         repos = [...repos, ...newRepos]
         console.timeEnd(`fetch page ${i}`)
+        yield newRepos
         if (responseData.viewer.repositories.pageInfo.hasNextPage) nextCursor = responseData.viewer.repositories.pageInfo.endCursor
         else break
     }
-
-    return repos
 }
