@@ -16,13 +16,19 @@ const askOpenInNewWindow = async () =>
 
 type Options = Pick<GetDirsParams, 'selectedDirs' | 'openWithRemotesCommand' | 'cwd'> & {
     quickPickOptions: Pick<vscode.QuickPickOptions, 'title'>
-    initiallyShowForks: boolean | 'only'
+    args: {
+        initiallyShowForks: boolean | 'only'
+        ownerFilter?: string
+        // only for remote command
+        notClonedOnly: boolean
+    }
 }
 
 const HISTORY_ITEMS_LIMIT = 30
 
 /** `getDirectoriesToShow` wrapper with more vscode API quickPick with handlining opening */
-export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallyShowForks, openWithRemotesCommand, selectedDirs }: Options) => {
+export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWithRemotesCommand, selectedDirs }: Options) => {
+    const { initiallyShowForks, notClonedOnly, ownerFilter } = args
     const whereToOpen = getExtensionSetting('whereToOpen')
     let forceOpenNewWindow: undefined | boolean
 
@@ -41,7 +47,7 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
     quickPick.matchOnDescription = true
     const buttonsState = createStore(() => ({
         // setting the actual value later to invoke the subscriber
-        showForks: true as Options['initiallyShowForks'],
+        showForks: true as Options['args']['initiallyShowForks'],
     }))
 
     /** Items without filter */
@@ -55,8 +61,11 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
             .map(({ displayName, description, ...value }) => {
                 // TODO more clean solution
                 const isFork = description?.includes('$(repo-forked)')
-                if (isFork && buttonsState.getState().showForks === false) return undefined!
-                if (!isFork && buttonsState.getState().showForks === 'only') return undefined!
+                const showForksState = buttonsState.getState().showForks
+                if (isFork && showForksState === false) return undefined!
+                if (!isFork && showForksState === 'only') return undefined!
+                if (notClonedOnly && !displayName.includes('$(globe)')) return undefined!
+                if (ownerFilter && value.repoSlug && !value.repoSlug.startsWith(`${ownerFilter}/`)) return undefined!
 
                 return {
                     label: displayName,
@@ -123,7 +132,7 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, initiallySho
             else if (action === 'reveal-in-explorer' && 'dirName' in activeItem.value)
                 await vscode.env.openExternal(vscode.Uri.file(join(cwd, activeItem.value.dirName)))
         } else {
-            const statesCycle = [true, 'only', false] as Array<Options['initiallyShowForks']>
+            const statesCycle = [true, 'only', false] as Array<Options['args']['initiallyShowForks']>
             buttonsState.setState(({ showForks }) => ({
                 showForks: statesCycle[statesCycle.indexOf(showForks) + 1] ?? statesCycle[0],
             }))

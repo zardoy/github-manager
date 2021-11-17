@@ -10,19 +10,16 @@ export async function activate() {
     void initializeGithubAuth()
     if (getExtensionSetting('boostRecentlyOpened')) extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
 
-    const openCommandHandler: CommandHandler = async ({ command: commandUntyped }, { showForks = true } = {}) => {
+    const openCommandHandler: CommandHandler = async ({ command: commandUntyped }, { showForks = true, notClonedOnly = false, owner } = {}) => {
         const command = commandUntyped as OpenCommands
-        /* UNIMPLEMENTED */
+        // just for reference here for now
         interface CommandArgs {
             openGithubRepository: {
-                includeForks: string
-                notClonedOnly: string
-            }
-            openForkedGithubRepository: {
+                showForks: string
                 notClonedOnly: string
             }
             openClonedGithubRepository: {
-                includeForks: boolean
+                showForks: boolean
                 owner: string
             }
         }
@@ -44,7 +41,11 @@ export async function activate() {
             quickPickOptions: {
                 title: `Select ${titleMainPart[command]} to open`,
             },
-            initiallyShowForks: showForks,
+            args: {
+                initiallyShowForks: showForks,
+                ownerFilter: owner,
+                notClonedOnly,
+            },
             selectedDirs: command === 'openAnything' ? { 'non-git': true, 'non-remote': true, github: true } : { [commandDirectoryTypeMap[command]]: true },
             // only applies for commands that open repositories
             openWithRemotesCommand: command === 'openGithubRepository',

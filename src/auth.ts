@@ -35,6 +35,7 @@ interface RepoResponse {
     }
 }
 
+/** yields new just fetched repos and returns nothing */
 export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerator<RepoResponse[]> {
     const orderBy = getExtensionSetting('onlineRepos.orderBy')
     const showArchived = getExtensionSetting('onlineRepos.showArchived')
@@ -91,6 +92,8 @@ export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerat
         repos = [...repos, ...newRepos]
         console.timeEnd(`fetch page ${i}`)
         yield newRepos
+        // TODO hard limiting
+        if (repos.length >= 1000) break
         if (responseData.viewer.repositories.pageInfo.hasNextPage) nextCursor = responseData.viewer.repositories.pageInfo.endCursor
         else break
     }
