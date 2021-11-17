@@ -21,22 +21,6 @@ export const getDirsFromCwd = async (cwd: string) => {
 
 // actually copy-pasted from zardoy/rename-repos/src/common.ts
 
-export interface GithubRepo {
-    owner: string
-    name: string
-    forked: boolean
-    /** Relative directory path from defaultCloneDirectory */
-    dirName: string
-}
-
-export interface RemoteGithubRepo {
-    remote: true
-    owner: string
-    name: string
-    forked: boolean
-    dirName?: string
-}
-
 export function getReposDir(openCommand: OpenCommands) {
     const gitDefaultDir: string | undefined | null = vscode.workspace.getConfiguration('git').get('defaultCloneDirectory')
     if (!gitDefaultDir)

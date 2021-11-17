@@ -13,6 +13,10 @@ It's something like, [Project Manager extension](https://marketplace.visualstudi
 
 - This extension uses `git.defaultCloneDirectory` underneath from which it gets cloned repos, it is sync-ignored by default.
 
+![](https://raw.githubusercontent.com/microsoft/vscode-codicons/482a516fd42a0a0262725638300ba0fe0c106bbf/src/icons/dash.svg) means not forked repo.
+
+> Note: if you have repos with the same origin, (perhaps you duplicated cloned directory repository), only first (random) one will be shown as yours and another one will be shown as yours. It's recommended to remove duplicated directories in these cases.
+
 ### TODO
 
 - [ ] custom repository render template? (I don't really need it)

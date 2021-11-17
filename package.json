@@ -117,21 +117,24 @@
                     "description": "Whether to show archived non-cloned repos",
                     "default": false
                 },
-                "onlineRepos.sortBy": {
+                "onlineRepos.orderBy": {
                     "type": "string",
-                    "description": "How to sort repos when displaying with not-cloned, other cloned repos are sorted according to #sortClonedBy# setting",
+                    "description": "How to sort repos for remote command, other cloned repos are sorted by owner/name",
                     "enum": [
-                        "lastUpdated",
-                        "lastPushed",
-                        "fullName",
-                        "created"
+                        "CREATED_AT",
+                        "UPDATED_AT",
+                        "PUSHED_AT",
+                        "NAME",
+                        "STARGAZERS"
                     ],
                     "enumDescriptions": [
-                        "Sort by count of owner's repositories",
-                        "Sort by count last modified of directory of repository",
-                        "Sort by recently opened via this extension. We don't have access to VSCode's recently opened"
+                        "Order repositories by creation time",
+                        "Order repositories by update time",
+                        "Order repositories by push time",
+                        "Order repositories by name",
+                        "Order repositories by number of stargazers"
                     ],
-                    "default": "recentlyOpened"
+                    "default": "PUSHED_AT"
                 },
                 "onlineRepos.reposType": {
                     "type": "string",
@@ -140,7 +143,8 @@
                         "owner",
                         "public",
                         "private",
-                        "member"
+                        "collaborator",
+                        "organization_member"
                     ],
                     "description": "Which repository types to show",
                     "default": "all"
@@ -203,7 +207,6 @@
     "dependencies": {
         "@hediet/node-reload": "^0.7.3",
         "@octokit/graphql": "^4.8.0",
-        "@octokit/rest": "^18.12.0",
         "@types/hosted-git-info": "^3.0.2",
         "@types/ini": "^1.3.31",
         "@types/url-join": "^4.0.1",
@@ -224,7 +227,7 @@
         "read-pkg": "^7.0.0",
         "recursive-last-modified": "^1.0.5",
         "url-join": "^4.0.1",
-        "vscode-framework": "0.0.13",
+        "vscode-framework": "^0.0.13",
         "zustand": "^3.6.5"
     },
     "license": "MIT"

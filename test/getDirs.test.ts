@@ -1,14 +1,18 @@
 /// <reference types="jest" />
 import { join } from 'path'
 import { Settings } from 'vscode-framework'
+import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill.js'
 import * as vscodeFramework from 'vscode-framework/build/framework/settings'
 import * as injectecVars from 'vscode-framework/build/framework/injected'
 import * as getDirs from '../src/core/getDirs'
 
-type Args = Parameters<typeof getDirs.getDirectoriesToShow> extends [any, ...infer U] ? U : never
-
-const getDirectoriesToShow = async (...args: Args) => {
-    const { cwd, ...result } = await getDirs.getDirectoriesToShow(join(__dirname, './fixtures/mixed-dirs'), ...args)
+const getDirectoriesToShow = async (selectedDirs: getDirs.GetDirsParams['selectedDirs'], includeRemote = false) => {
+    const { ...result } = await getDirs.getDirectoriesToShow({
+        cwd: join(__dirname, './fixtures/mixed-dirs'),
+        abortSignal: new AbortController().signal,
+        openWithRemotesCommand: includeRemote,
+        selectedDirs,
+    })
     return { ...result }
 }
 
@@ -412,9 +416,10 @@ Object {
     resetSettings()
 })
 
-test.each([{
-    description: 'Local only',
-
-}])('List only forks with $description')
+// test.each([
+//     {
+//         description: 'Local only',
+//     },
+// ])('List only forks with $description')
 
 // 'another-author/some-forked-repo'

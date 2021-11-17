@@ -1,16 +1,27 @@
 import { Except } from 'type-fest'
-import { CommandHandler, extensionCtx, getExtensionSetting, registerAllExtensionCommands, RegularCommands, showQuickPick } from 'vscode-framework'
-import { initializeGithubAuth } from './auth'
-import { DirectoryType, getDirectoriesToShow } from './core/getDirs'
+import {
+    CommandHandler,
+    extensionCtx,
+    getExtensionSetting,
+    registerActiveDevelopmentCommand,
+    registerAllExtensionCommands,
+    RegularCommands,
+} from 'vscode-framework'
+import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill.js'
+import { getAllGithubRepos, initializeGithubAuth } from './auth'
+import { DirectoryType } from './core/getDirs'
 import { getReposDir } from './core/git'
 import { cloneOrOpenDirectory } from './core/open'
 import { openAtGithub } from './openAtGithub'
+import { uniqBy } from 'lodash'
 
 export async function activate() {
     void initializeGithubAuth()
     if (getExtensionSetting('boostRecentlyOpened')) extensionCtx.globalState.setKeysForSync(['lastGithubRepos'])
 
-    const openCommandHandler: CommandHandler = async ({ command }, args = {}) => {
+    const openCommandHandler: CommandHandler = async ({ command: commandUntyped }, { showForks = false } = {}) => {
+        const command = commandUntyped as OpenCommands
+        /* UNIMPLEMENTED */
         interface CommandArgs {
             openGithubRepository: {
                 includeForks: string
@@ -27,50 +38,39 @@ export async function activate() {
         const titleMainPart: Record<OpenCommands, string> = {
             openGithubRepository: 'repository',
             openClonedGithubRepository: 'cloned repository',
-            openForkedGithubRepository: 'forked repository',
-            openClonedForkedGithubRepository: 'cloned forked repository',
             openNonGitDirectory: 'non-git directory',
             openNonRemoteRepository: 'non-remote git directory',
             openEverything: 'directory or repository',
         }
         const commandDirectoryTypeMap: Record<Exclude<OpenCommands, 'openEverything'>, DirectoryType> = {
             openGithubRepository: 'github',
-            openClonedForkedGithubRepository: 'github',
             openClonedGithubRepository: 'github',
-            openForkedGithubRepository: 'github',
             openNonGitDirectory: 'non-git',
             openNonRemoteRepository: 'non-remote',
         }
         await cloneOrOpenDirectory({
-            getDirectories: async abortSignal =>
-                getDirectoriesToShow(
-                    getReposDir(command as OpenCommands),
-                    command === 'openEverything' ? { 'non-git': true, 'non-remote': true, github: true } : { [commandDirectoryTypeMap[command]]: true },
-                    command === 'openGithubRepository' || command === 'openForkedGithubRepository',
-                    command === 'openForkedGithubRepository' || command === 'openClonedForkedGithubRepository',
-                    abortSignal,
-                ),
+            cwd: getReposDir(command),
             quickPickOptions: {
                 title: `Select ${titleMainPart[command]} to open`,
             },
+            initiallyShowForks: showForks,
+            selectedDirs: command === 'openEverything' ? { 'non-git': true, 'non-remote': true, github: true } : { [commandDirectoryTypeMap[command]]: true },
+            // only applies for commands that open repositories
+            openWithRemotesCommand: command === 'openGithubRepository',
         })
     }
 
+    const openCommands: OpenCommands[] = [
+        'openClonedGithubRepository',
+        'openEverything',
+        'openGithubRepository',
+        'openNonGitDirectory',
+        'openNonRemoteRepository',
+    ]
+
     registerAllExtensionCommands({
         openAtGithub,
-        ...Object.fromEntries(
-            (
-                [
-                    'openClonedForkedGithubRepository',
-                    'openClonedGithubRepository',
-                    'openEverything',
-                    'openForkedGithubRepository',
-                    'openGithubRepository',
-                    'openNonGitDirectory',
-                    'openNonRemoteRepository',
-                ] as OpenCommands[]
-            ).map(commandName => [commandName, openCommandHandler]),
-        ),
+        ...Object.fromEntries(openCommands.map(commandName => [commandName, openCommandHandler])),
     })
 }
 
