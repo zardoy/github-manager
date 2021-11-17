@@ -17,7 +17,7 @@ const getDirectoriesToShow = async (selectedDirs: getDirs.GetDirsParams['selecte
     let lastDirectoriesResult: getDirs.GetDirsYields<'directories'> = undefined!
     for await (const dirs of dirsGenerator) lastDirectoriesResult = dirs as getDirs.GetDirsYields<'directories'>
 
-    return { directories: lastDirectoriesResult, history }
+    return { history, ...lastDirectoriesResult }
 }
 
 const ALL_DIRS_TYPES = { github: true, 'non-git': true, 'non-remote': true }
@@ -119,31 +119,37 @@ Object {
   "directories": Array [
     Object {
       "dirName": "github-top",
-      "displayName": "$(github-inverted) another-owner/a",
+      "displayName": "$(github-inverted)$(folder) another-owner/a",
       "repoSlug": "another-owner/a",
+      "type": "local",
     },
     Object {
       "dirName": "githubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else",
       "repoSlug": "another-owner/something-else",
+      "type": "local",
     },
     Object {
       "dirName": "anotherGithubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
+      "description": "$(repo-forked) microsoft/vscode",
       "dirName": "github-fork",
-      "displayName": "$(github-inverted) $(repo-forked) awesome-contributor/vscode",
+      "displayName": "$(github-inverted)$(folder) awesome-contributor/vscode",
       "repoSlug": "awesome-contributor/vscode",
+      "type": "local",
     },
     Object {
       "dirName": "github-without-upstream-remote",
-      "displayName": "$(github-inverted) another-author/some-forked-repo",
+      "displayName": "$(github-inverted)$(folder) another-author/some-forked-repo",
       "repoSlug": "another-author/some-forked-repo",
+      "type": "local",
     },
   ],
-  "history": Array [],
+  "history": undefined,
 }
 `)
     resetSettings()
@@ -156,9 +162,10 @@ Object {
     Object {
       "dirName": "nonRemote",
       "displayName": "$(git-branch) nonRemote",
+      "type": "local",
     },
   ],
-  "history": Array [],
+  "history": undefined,
 }
 `)
 })
@@ -170,9 +177,10 @@ Object {
     Object {
       "dirName": "nonGit",
       "displayName": "$(file-directory) nonGit",
+      "type": "local",
     },
   ],
-  "history": Array [],
+  "history": undefined,
 }
 `)
 })
@@ -187,51 +195,61 @@ Object {
   "directories": Array [
     Object {
       "dirName": "githubAuthor1",
-      "displayName": "$(github-inverted) test-author/vscode-extension-name",
+      "displayName": "$(github-inverted)$(folder) test-author/vscode-extension-name",
       "repoSlug": "test-author/vscode-extension-name",
+      "type": "local",
     },
     Object {
-      "description": "anotherGithubAuthor2",
+      "description": "$(folder) anotherGithubAuthor2",
       "dirName": "anotherGithubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
       "dirName": "github-top",
-      "displayName": "$(github-inverted) another-owner/a",
+      "displayName": "$(github-inverted)$(folder) another-owner/a",
       "repoSlug": "another-owner/a",
+      "type": "local",
     },
     Object {
       "dirName": "githubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else",
       "repoSlug": "another-owner/something-else",
+      "type": "local",
     },
     Object {
-      "description": "githubDuplicate",
+      "description": "$(folder) githubDuplicate",
       "dirName": "githubDuplicate",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
-      "description": "githubDuplicate2",
+      "description": "$(folder) githubDuplicate2",
       "dirName": "githubDuplicate2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
       "dirName": "anotherGithubAuthor1",
-      "displayName": "$(github-inverted) test-author/something-else",
+      "displayName": "$(github-inverted)$(folder) test-author/something-else",
       "repoSlug": "test-author/something-else",
+      "type": "local",
     },
     Object {
+      "description": "$(repo-forked) microsoft/vscode",
       "dirName": "github-fork",
-      "displayName": "$(github-inverted) $(repo-forked) awesome-contributor/vscode",
+      "displayName": "$(github-inverted)$(folder) awesome-contributor/vscode",
       "repoSlug": "awesome-contributor/vscode",
+      "type": "local",
     },
     Object {
       "dirName": "github-without-upstream-remote",
-      "displayName": "$(github-inverted) another-author/some-forked-repo",
+      "displayName": "$(github-inverted)$(folder) another-author/some-forked-repo",
       "repoSlug": "another-author/some-forked-repo",
+      "type": "local",
     },
   ],
   "history": Array [
@@ -250,59 +268,71 @@ Object {
   "directories": Array [
     Object {
       "dirName": "githubAuthor1",
-      "displayName": "$(github-inverted) test-author/vscode-extension-name",
+      "displayName": "$(github-inverted)$(folder) test-author/vscode-extension-name",
       "repoSlug": "test-author/vscode-extension-name",
+      "type": "local",
     },
     Object {
-      "description": "anotherGithubAuthor2",
+      "description": "$(folder) anotherGithubAuthor2",
       "dirName": "anotherGithubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
       "dirName": "github-top",
-      "displayName": "$(github-inverted) another-owner/a",
+      "displayName": "$(github-inverted)$(folder) another-owner/a",
       "repoSlug": "another-owner/a",
+      "type": "local",
     },
     Object {
       "dirName": "githubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else",
       "repoSlug": "another-owner/something-else",
+      "type": "local",
     },
     Object {
-      "description": "githubDuplicate",
+      "description": "$(folder) githubDuplicate",
       "dirName": "githubDuplicate",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
-      "description": "githubDuplicate2",
+      "description": "$(folder) githubDuplicate2",
       "dirName": "githubDuplicate2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
       "dirName": "anotherGithubAuthor1",
-      "displayName": "$(github-inverted) test-author/something-else",
+      "displayName": "$(github-inverted)$(folder) test-author/something-else",
       "repoSlug": "test-author/something-else",
+      "type": "local",
     },
     Object {
+      "description": "$(repo-forked) microsoft/vscode",
       "dirName": "github-fork",
-      "displayName": "$(github-inverted) $(repo-forked) awesome-contributor/vscode",
+      "displayName": "$(github-inverted)$(folder) awesome-contributor/vscode",
       "repoSlug": "awesome-contributor/vscode",
+      "type": "local",
     },
     Object {
       "dirName": "github-without-upstream-remote",
-      "displayName": "$(github-inverted) another-author/some-forked-repo",
+      "displayName": "$(github-inverted)$(folder) another-author/some-forked-repo",
       "repoSlug": "another-author/some-forked-repo",
+      "type": "local",
     },
     Object {
       "dirName": "nonRemote",
       "displayName": "$(git-branch) nonRemote",
+      "type": "local",
     },
     Object {
       "dirName": "nonGit",
       "displayName": "$(file-directory) nonGit",
+      "type": "local",
     },
   ],
   "history": Array [
@@ -335,62 +365,74 @@ Object {
   "directories": Array [
     Object {
       "dirName": "github-top",
-      "displayName": "$(github-inverted) another-owner/a",
+      "displayName": "$(github-inverted)$(folder) another-owner/a",
       "repoSlug": "another-owner/a",
+      "type": "local",
     },
     Object {
       "dirName": "githubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else",
       "repoSlug": "another-owner/something-else",
+      "type": "local",
     },
     Object {
-      "description": "anotherGithubAuthor2",
+      "description": "$(folder) anotherGithubAuthor2",
       "dirName": "anotherGithubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
-      "description": "githubDuplicate",
+      "description": "$(folder) githubDuplicate",
       "dirName": "githubDuplicate",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
-      "description": "githubDuplicate2",
+      "description": "$(folder) githubDuplicate2",
       "dirName": "githubDuplicate2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
     Object {
       "dirName": "anotherGithubAuthor1",
-      "displayName": "$(github-inverted) test-author/something-else",
+      "displayName": "$(github-inverted)$(folder) test-author/something-else",
       "repoSlug": "test-author/something-else",
+      "type": "local",
     },
     Object {
       "dirName": "githubAuthor1",
-      "displayName": "$(github-inverted) test-author/vscode-extension-name",
+      "displayName": "$(github-inverted)$(folder) test-author/vscode-extension-name",
       "repoSlug": "test-author/vscode-extension-name",
+      "type": "local",
     },
     Object {
+      "description": "$(repo-forked) microsoft/vscode",
       "dirName": "github-fork",
-      "displayName": "$(github-inverted) $(repo-forked) awesome-contributor/vscode",
+      "displayName": "$(github-inverted)$(folder) awesome-contributor/vscode",
       "repoSlug": "awesome-contributor/vscode",
+      "type": "local",
     },
     Object {
       "dirName": "github-without-upstream-remote",
-      "displayName": "$(github-inverted) another-author/some-forked-repo",
+      "displayName": "$(github-inverted)$(folder) another-author/some-forked-repo",
       "repoSlug": "another-author/some-forked-repo",
+      "type": "local",
     },
     Object {
       "dirName": "nonRemote",
       "displayName": "$(git-branch) nonRemote",
+      "type": "local",
     },
     Object {
       "dirName": "nonGit",
       "displayName": "$(file-directory) nonGit",
+      "type": "local",
     },
   ],
-  "history": Array [],
+  "history": undefined,
 }
 `)
 })
@@ -403,16 +445,18 @@ Object {
   "directories": Array [
     Object {
       "dirName": "anotherGithubAuthor1",
-      "displayName": "$(github-inverted) test-author/something-else",
+      "displayName": "$(github-inverted)$(folder) test-author/something-else",
       "repoSlug": "test-author/something-else",
+      "type": "local",
     },
     Object {
       "dirName": "anotherGithubAuthor2",
-      "displayName": "$(github-inverted) another-owner/something-else-here",
+      "displayName": "$(github-inverted)$(folder) another-owner/something-else-here",
       "repoSlug": "another-owner/something-else-here",
+      "type": "local",
     },
   ],
-  "history": Array [],
+  "history": undefined,
 }
 `)
     resetSettings()
