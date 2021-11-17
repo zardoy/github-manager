@@ -84,6 +84,12 @@ export async function* getDirectoriesToShow({
     openWithRemotesCommand,
 }: GetDirsParams): AsyncGenerator<GetDirsYields<'history'> | GetDirsYields<'directories'>> {
     let { git: gitDirs, nonGit: nonGitDirs } = await getDirsFromCwd(cwd)
+    const ignoreRegexp = normalizeRegex(getExtensionSetting('ignore.dirNameRegex'))
+    if (ignoreRegexp) {
+        gitDirs = gitDirs.filter(dirName => !dirName.match(ignoreRegexp))
+        nonGitDirs = nonGitDirs.filter(dirName => !dirName.match(ignoreRegexp))
+    }
+
     const bottomPicks: DirectoryDisplayItem[] = []
 
     if (selectedDirs['non-git'])
@@ -100,12 +106,6 @@ export async function* getDirectoriesToShow({
     /** history holds repos slug */
     const history: string[] | undefined = getExtensionSetting('boostRecentlyOpened') ? extensionCtx.globalState.get('lastGithubRepos') ?? [] : undefined
     yield { history }
-
-    const ignoreRegexp = normalizeRegex(getExtensionSetting('ignore.dirNameRegex'))
-    if (ignoreRegexp) {
-        gitDirs = gitDirs.filter(dirName => !dirName.match(ignoreRegexp))
-        nonGitDirs = nonGitDirs.filter(dirName => !dirName.match(ignoreRegexp))
-    }
 
     if (selectedDirs.github || selectedDirs['non-remote']) {
         // TODO how to apply abortSignal here

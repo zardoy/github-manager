@@ -194,12 +194,12 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
         await openSelectedDirectory(join(cwd, selectedItem.dirName), forceOpenNewWindow)
     } else if (selectedItem.type === 'remote') {
         let shallowClone = false
-        const REPO_SIZE_THRESHOLD_KB = 50 * 1024 // 50MG
+        const REPO_SIZE_THRESHOLD_KB = 50 * 1024 // 50 MB
         const { repoSlug, diskUsage } = selectedItem
         if (diskUsage > REPO_SIZE_THRESHOLD_KB) {
             const response = await vscode.window.showWarningMessage(
                 'Cloning repository is big',
-                { modal: true, detail: `Repository size on GitHub is ${fileSize(diskUsage)}. Use shallow clone (--depth=1)?` },
+                { modal: true, detail: `${repoSlug} size on GitHub is ${fileSize(diskUsage * 1024)}. Use shallow clone (--depth=1)?` },
                 'Yes',
                 'No',
             )

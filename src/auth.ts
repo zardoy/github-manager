@@ -25,7 +25,7 @@ export async function getAuthorizedGraphqlOctokit() {
     })
 }
 
-interface RepoResponse {
+export interface RepoResponse {
     nameWithOwner: string
     /** kb */
     diskUsage: number
@@ -93,7 +93,10 @@ export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerat
         console.timeEnd(`fetch page ${i}`)
         yield newRepos
         // TODO hard limiting
-        if (repos.length >= 1000) break
+        if (repos.length >= 1000) {
+            console.warn('Listing not all repositories. Limit in 1k repos exceeded')
+            break
+        }
         if (responseData.viewer.repositories.pageInfo.hasNextPage) nextCursor = responseData.viewer.repositories.pageInfo.endCursor
         else break
     }
