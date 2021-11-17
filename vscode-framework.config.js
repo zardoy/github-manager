@@ -4,6 +4,7 @@
 const config = {
     esbuild: {
         sourcemap: true,
+        keepNames: true,
     },
     target: {
         desktop: true,

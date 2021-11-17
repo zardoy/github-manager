@@ -29,14 +29,6 @@
                 "title": "Open GitHub Repository..."
             },
             {
-                "command": "openForkedGithubRepository",
-                "title": "Open Forked GitHub Repository..."
-            },
-            {
-                "command": "openClonedForkedGithubRepository",
-                "title": "Open Cloned Forked GitHub Repository..."
-            },
-            {
                 "command": "openNonGitDirectory",
                 "title": "Open Non-Git Directory..."
             },
@@ -118,7 +110,7 @@
                         "Use `alwaysOnline` and `upstreamRemote` when no internet connection",
                         "Count repo as fork if it has `remote` upstream in config"
                     ],
-                    "default": "fallback"
+                    "default": "upstreamRemote"
                 },
                 "onlineRepos.showArchived": {
                     "type": "boolean",
@@ -185,18 +177,18 @@
         "@types/fs-extra": "^9.0.13",
         "@types/glob": "^7.2.0",
         "@types/jest": "^27.0.2",
-        "@types/lodash": "^4.14.176",
+        "@types/lodash": "^4.14.177",
         "@types/mocha": "^9.0.0",
         "@types/node": "16.11.7",
-        "@types/react": "^17.0.34",
+        "@types/react": "^17.0.35",
         "@types/react-dom": "^17.0.11",
         "@types/vscode": "^1.62.0",
         "@vscode/test-electron": "^1.6.2",
         "babel-jest": "^27.3.1",
         "delay": "^5.0.0",
-        "esbuild": "^0.13.13",
+        "esbuild": "^0.13.14",
         "eslint": "^7.32.0",
-        "eslint-plugin-zardoy-config": "^0.1.2",
+        "eslint-plugin-zardoy-config": "^0.1.3",
         "fs-extra": "^10.0.0",
         "glob": "^7.2.0",
         "jest": "^27.3.1",
@@ -210,6 +202,7 @@
     },
     "dependencies": {
         "@hediet/node-reload": "^0.7.3",
+        "@octokit/graphql": "^4.8.0",
         "@octokit/rest": "^18.12.0",
         "@types/hosted-git-info": "^3.0.2",
         "@types/ini": "^1.3.31",
@@ -231,7 +224,8 @@
         "read-pkg": "^7.0.0",
         "recursive-last-modified": "^1.0.5",
         "url-join": "^4.0.1",
-        "vscode-framework": "0.0.12"
+        "vscode-framework": "0.0.13",
+        "zustand": "^3.6.5"
     },
     "license": "MIT"
 }
