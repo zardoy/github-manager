@@ -94,6 +94,12 @@ Example:
 
 It would show only forked not-cloned repos that you have access to (perhaps collaborator).
 
+## Comparison to GitHub Repositories
+
+[GitHub Repositories](https://marketplace.visualstudio.com/items?itemName=GitHub.remotehub) might be better for simple text editing, as it opens your repository instantly, without using *clone*. Also with this extension you don't need to worry about pushing/pulling anything, as you work with your repository "online".
+
+Also, there is [GitHub Codespaces](https://marketplace.visualstudio.com/items?itemName=GitHub.codespaces) for cloud development, which might become more convenient for your day-to-day workflow.
+
 ## Open at GitHub
 
 This is a command for opening current cloned repository at GitHub, in multi-root workspaces you have to select folder (cloned GitHub repo).
