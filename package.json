@@ -1,8 +1,9 @@
 {
     "name": "github-manager",
-    "publisher": "zardoy",
     "displayName": "GitHub Manager",
-    "description": "Quickly switch between cloned GitHub repos",
+    "publisher": "zardoy",
+    "description": "THE FASTEST way to switch between cloned GitHub repos",
+    "icon": "resources/icon.png",
     "version": "0.0.1",
     "categories": [
         "Other"
@@ -20,38 +21,128 @@
     "contributes": {
         "commands": [
             {
-                "category": "GitHub Manager",
-                "command": "open-github-repos",
-                "title": "Open Cloned GitHub Repository"
+                "command": "openClonedGithubRepository",
+                "title": "Open Cloned GitHub Repository..."
             },
             {
-                "category": "GitHub Manager",
-                "command": "open-non-git-dirs",
-                "title": "Open Non-Git Directory"
+                "command": "openGithubRepository",
+                "title": "Open GitHub Repository..."
             },
             {
-                "category": "GitHub Manager",
-                "command": "open-non-remote-repos",
-                "title": "Open Non-Remote Repository"
+                "command": "openNonGitDirectory",
+                "title": "Open Non-Git Directory..."
             },
             {
-                "category": "GitHub Manager",
-                "command": "open-everything",
-                "title": "Open Non-Git Directory Or Repository (all)"
+                "command": "openNonRemoteRepository",
+                "title": "Open Non-Remote Repository..."
+            },
+            {
+                "command": "openAnything",
+                "title": "Open Non-Git Directory Or Repository (anything)..."
+            },
+            {
+                "command": "openAtGithub",
+                "title": "Open At GitHub"
             }
         ],
         "configuration": {
             "title": "GitHub Manager",
             "properties": {
-                "github-manager.whereToOpen": {
+                "whereToOpen": {
                     "type": "string",
-                    "default": "newWindowIfNotEmpty",
+                    "description": "It always reuses empty windows",
                     "enum": [
                         "newWindowIfNotEmpty",
                         "alwaysSameWindow",
                         "ask(after)",
                         "ask(before)"
-                    ]
+                    ],
+                    "default": "newWindowIfNotEmpty"
+                },
+                "boostRecentlyOpened": {
+                    "type": "boolean",
+                    "description": "Boost to top repos that were recently opened. It syncs and applies to all commands.\nBut note we don't have access to VSCode's recently opened menu",
+                    "default": true
+                },
+                "ignore.users": {
+                    "type": "array",
+                    "description": "From which owners don't display GitHub repos",
+                    "items": {
+                        "type": "string"
+                    },
+                    "uniqueItems": true,
+                    "default": []
+                },
+                "ignore.dirNameRegex": {
+                    "type": "string",
+                    "markdownDescription": "Regexp to filter out dirs. Applies to all commands. Can be either string or regex with flags.\nExamples:\n - `test`\n - `/test/g`\n - `dir1|dir2`",
+                    "default": ""
+                },
+                "showFolderNames": {
+                    "type": "string",
+                    "description": "Whether to show folder names next to repo slug when openining cloned GitHub repository",
+                    "enum": [
+                        "never",
+                        "onDuplicates",
+                        "always"
+                    ],
+                    "enumDescriptions": [
+                        "Never show folder names",
+                        "Show folder names only on duplicate entries (same owner/repo)",
+                        "Always show folder names"
+                    ],
+                    "default": "onDuplicates"
+                },
+                "enableAuthentication": {
+                    "type": "boolean",
+                    "description": "Whether to enable inegration with your GitHub accout via authentication\nDisable to work with cloned repos only",
+                    "default": true
+                },
+                "onlineRepos.showArchived": {
+                    "type": "boolean",
+                    "description": "Whether to show archived non-cloned repos",
+                    "default": false
+                },
+                "onlineRepos.orderBy": {
+                    "type": "string",
+                    "description": "How to sort repos for remote command, other cloned repos are sorted by owner/name",
+                    "enum": [
+                        "CREATED_AT",
+                        "UPDATED_AT",
+                        "PUSHED_AT",
+                        "NAME",
+                        "STARGAZERS"
+                    ],
+                    "enumDescriptions": [
+                        "Order repositories by creation time",
+                        "Order repositories by update time",
+                        "Order repositories by push time",
+                        "Order repositories by name",
+                        "Order repositories by number of stargazers"
+                    ],
+                    "default": "PUSHED_AT"
+                },
+                "onlineRepos.reposType": {
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "owner",
+                        "public",
+                        "private",
+                        "collaborator",
+                        "organization_member"
+                    ],
+                    "description": "Which repository types to show",
+                    "default": "all"
+                },
+                "onlineRepos.clonedDirFormat": {
+                    "type": "string",
+                    "enum": [
+                        "repoName",
+                        "repoOwner_repoName"
+                    ],
+                    "description": "Format to use for cloning directory name",
+                    "default": "repoName"
                 }
             }
         }
@@ -59,48 +150,60 @@
     "capabilities": {
         "untrustedWorkspaces": {
             "supported": true
-        }
+        },
+        "virtualWorkspaces": true
     },
     "scripts": {
         "start": "vscode-framework start",
         "build": "vscode-framework build",
-        "pretest": "pnpm build && pnpm lint",
-        "test": "node ./out/test/runTest.js",
-        "vscode:prepublish": "tsc && ts-node scripts/prepare.ts && pnpm build",
-        "lint": "xo src",
-        "lint:fix": "xo src --fix"
+        "test": "tsm test/setupFixtures.ts && jest"
     },
     "devDependencies": {
-        "@types/glob": "^7.1.4",
-        "@types/lodash": "^4.14.172",
-        "@types/mocha": "^9.0.0",
-        "@types/node": "16.7.13",
-        "@types/react": "^17.0.20",
-        "@types/react-dom": "^17.0.9",
-        "@types/vscode": "^1.60.0",
-        "@zardoy/xo-config": "^0.1.0",
-        "esbuild": "^0.12.25",
-        "glob": "^7.1.7",
-        "mocha": "^9.1.1",
-        "modify-json-file": "^1.1.0",
-        "type-fest": "^2.2.0",
-        "typescript": "^4.4.2",
-        "vscode-test": "^1.6.1",
-        "xo": "^0.44.0"
+        "@babel/cli": "^7.16.0",
+        "@babel/core": "^7.16.0",
+        "@babel/preset-env": "^7.16.0",
+        "@babel/preset-typescript": "^7.16.0",
+        "@types/fs-extra": "^9.0.13",
+        "@types/jest": "^27.0.2",
+        "@types/lodash": "^4.14.177",
+        "@types/node": "16.11.7",
+        "@types/react": "^17.0.35",
+        "@types/react-dom": "^17.0.11",
+        "@types/vscode": "^1.62.0",
+        "@vscode/test-electron": "^1.6.2",
+        "babel-jest": "^27.3.1",
+        "delay": "^5.0.0",
+        "esbuild": "^0.13.14",
+        "eslint": "^7.32.0",
+        "eslint-plugin-zardoy-config": "^0.1.3",
+        "fs-extra": "^10.0.0",
+        "jest": "^27.3.1",
+        "modify-json-file": "^1.2.1",
+        "ts-jest": "^27.0.7",
+        "tsm": "^2.1.4",
+        "type-fest": "^2.5.3",
+        "typescript": "^4.4.4",
+        "vscode-test": "^1.6.1"
     },
     "dependencies": {
-        "@hediet/node-reload": "^0.7.3",
-        "@octokit/rest": "^18.10.0",
+        "@octokit/graphql": "^4.8.0",
+        "@types/hosted-git-info": "^3.0.2",
+        "@types/ini": "^1.3.31",
+        "@types/url-join": "^4.0.1",
         "@zardoy/tsconfig": "^1.2.2",
-        "find-up": "^6.0.0",
-        "git-remote-origin-url": "^3.1.0",
+        "abortcontroller-polyfill": "^1.7.3",
+        "esbuild-runner": "^2.2.1",
+        "execa": "^5.1.1",
+        "filesize": "^8.0.6",
+        "find-up": "^6.2.0",
         "github-remote-info": "^1.0.3",
+        "hosted-git-info": "^4.0.2",
+        "ini": "^2.0.0",
         "lodash": "^4.17.21",
-        "nanoid": "^3.1.25",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
         "read-pkg": "^7.0.0",
-        "vscode-framework": "github:zardoy/vscode-tools#build"
+        "url-join": "^4.0.1",
+        "vscode-framework": "^0.0.13",
+        "zustand": "^3.6.5"
     },
     "license": "MIT"
 }
