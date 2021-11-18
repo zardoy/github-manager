@@ -50,6 +50,7 @@
             "properties": {
                 "whereToOpen": {
                     "type": "string",
+                    "description": "It always reuses empty windows",
                     "enum": [
                         "newWindowIfNotEmpty",
                         "alwaysSameWindow",

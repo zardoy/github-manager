@@ -8,11 +8,15 @@ import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill.js'
 import fileSize from 'filesize'
 import { DirectoryDisplayItem, getDirectoriesToShow, GetDirsParams, GetDirsYields } from './getDirs'
 
-const askOpenInNewWindow = async () =>
-    showQuickPick([
-        { label: '$(activate-breakpoints) Open in new window', value: true },
-        { label: '$(circle-outline) Open in current window', value: false },
-    ])
+// TODO should also work with dirs
+const askOpenInNewWindow = async (repoSlug?: string) =>
+    showQuickPick(
+        [
+            { label: '$(activate-breakpoints) Open in new window', value: true },
+            { label: '$(circle-outline) Open in current window', value: false },
+        ],
+        { title: repoSlug && `Where to open ${repoSlug}` },
+    )
 
 type Options = Pick<GetDirsParams, 'selectedDirs' | 'openWithRemotesCommand' | 'cwd'> & {
     quickPickOptions: Pick<vscode.QuickPickOptions, 'title'>
@@ -30,9 +34,10 @@ const HISTORY_ITEMS_LIMIT = 30
 export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWithRemotesCommand, selectedDirs }: Options) => {
     const { initiallyShowForks, notClonedOnly, ownerFilter } = args
     const whereToOpen = getExtensionSetting('whereToOpen')
-    let forceOpenNewWindow: undefined | boolean
+    // with any setting value, reuse empty windows
+    let forceOpenNewWindow: undefined | boolean = isWindowEmpty() ? true : undefined
 
-    if (whereToOpen === 'ask(before)') {
+    if (forceOpenNewWindow === undefined && whereToOpen === 'ask(before)') {
         const result = await askOpenInNewWindow()
         if (result === undefined) return
         forceOpenNewWindow = result
@@ -181,8 +186,8 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     console.timeEnd('Get all directories')
     if (!selectedItem) return
 
-    if (whereToOpen === 'ask(after)') {
-        const result = await askOpenInNewWindow()
+    if (forceOpenNewWindow === undefined && whereToOpen === 'ask(after)') {
+        const result = await askOpenInNewWindow(selectedItem.repoSlug)
         if (result === undefined) return
         forceOpenNewWindow = result
     }
@@ -229,13 +234,17 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     }
 }
 
+const isWindowEmpty = () =>
+    (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) &&
+    // no opened text editors (suppose tabs)
+    vscode.window.visibleTextEditors.filter(({ viewColumn }) => viewColumn !== undefined).length === 0
+
 export const openSelectedDirectory = async (dirPath: string, forceOpenNewWindow?: boolean) => {
     const whereToOpen = getExtensionSetting('whereToOpen')
     const folderUri = vscode.Uri.file(dirPath)
     const forceNewWindow = (() => {
         if (forceOpenNewWindow !== undefined) return forceOpenNewWindow
         if (whereToOpen === 'alwaysSameWindow') return false
-        if (whereToOpen === 'newWindowIfNotEmpty') return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
         return false
     })()
     await vscode.commands.executeCommand('vscode.openFolder', folderUri, {

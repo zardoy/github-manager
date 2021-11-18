@@ -41,6 +41,14 @@ You can even use this extension freely without authentication (or even forcefull
 
 - This extension is similar to [Project Manager extension](https://marketplace.visualstudio.com/items?itemName=alefragnani.project-manager), but the latter is a more comprehensive extension for working with git dirs (tags, bookmarks and so on...)
 
+## Open Location
+
+Extension always tries to reuse empty windows. But if windows isn't empty (have tabs or opened workspace), folder will be opened in new window by default.
+
+You change this via setting `githubManager.whereToOpen` to `ask(after)`, so whenever windows is not empty extension will ask you where to open the directory:
+
+![Github Manager asks where to open repository](media/demo-where-to-open.png)
+
 ## Source of Truth
 
 - This extension uses `git.defaultCloneDirectory` underneath from which it gets cloned repos, it is sync-ignored by default. However you don't need to specify the path manually, just use the button from error notification.
