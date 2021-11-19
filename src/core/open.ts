@@ -35,7 +35,7 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     const { initiallyShowForks, notClonedOnly, ownerFilter } = args
     const whereToOpen = getExtensionSetting('whereToOpen')
     // with any setting value, reuse empty windows
-    let forceOpenNewWindow: undefined | boolean = isWindowEmpty() ? true : undefined
+    let forceOpenNewWindow: undefined | boolean = isWindowEmpty() ? false : undefined
 
     if (forceOpenNewWindow === undefined && whereToOpen === 'ask(before)') {
         const result = await askOpenInNewWindow()
@@ -234,10 +234,13 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     }
 }
 
-const isWindowEmpty = () =>
-    (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) &&
-    // no opened text editors (suppose tabs)
-    vscode.window.visibleTextEditors.filter(({ viewColumn }) => viewColumn !== undefined).length === 0
+export const isWindowEmpty = () => {
+    if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) return false
+    // TODO migrate to tabs API when available
+    const visibleTextEditors = vscode.window.visibleTextEditors.filter(({ viewColumn }) => viewColumn !== undefined)
+    // suppose no opened tabs
+    return visibleTextEditors.length === 0
+}
 
 export const openSelectedDirectory = async (dirPath: string, forceOpenNewWindow?: boolean) => {
     const whereToOpen = getExtensionSetting('whereToOpen')
@@ -245,6 +248,7 @@ export const openSelectedDirectory = async (dirPath: string, forceOpenNewWindow?
     const forceNewWindow = (() => {
         if (forceOpenNewWindow !== undefined) return forceOpenNewWindow
         if (whereToOpen === 'alwaysSameWindow') return false
+        if (whereToOpen === 'newWindowIfNotEmpty') return !isWindowEmpty()
         return false
     })()
     await vscode.commands.executeCommand('vscode.openFolder', folderUri, {

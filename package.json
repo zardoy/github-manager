@@ -4,7 +4,7 @@
     "publisher": "zardoy",
     "description": "THE FASTEST way to switch between cloned GitHub repos",
     "icon": "resources/icon.png",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "categories": [
         "Other"
     ],
@@ -202,7 +202,7 @@
         "lodash": "^4.17.21",
         "read-pkg": "^7.0.0",
         "url-join": "^4.0.1",
-        "vscode-framework": "^0.0.13",
+        "vscode-framework": "^0.0.14",
         "zustand": "^3.6.5"
     },
     "license": "MIT"
