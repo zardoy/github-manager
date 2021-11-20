@@ -26,7 +26,7 @@ jobs:
           with:
             version: latest
             run_install: |
-                args: [--frozen-lockfile, --strict-peer-dependencies]
+                args: [--ignore-scripts, --frozen-lockfile, --strict-peer-dependencies]
         - run: pnpm test
   release:
     runs-on: ubuntu-latest
