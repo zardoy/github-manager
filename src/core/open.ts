@@ -192,8 +192,11 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
         forceOpenNewWindow = result
     }
 
-    if (history && selectedItem.repoSlug)
-        await extensionCtx.globalState.update('lastGithubRepos', [...history, selectedItem.repoSlug].slice(0, HISTORY_ITEMS_LIMIT))
+    if (history && selectedItem.repoSlug) {
+        const newLastOpenedRepos = [...history, selectedItem.repoSlug].slice(0, HISTORY_ITEMS_LIMIT)
+        await extensionCtx.globalState.update('lastGithubRepos', newLastOpenedRepos)
+        console.log('Updated history of last opened repos', newLastOpenedRepos)
+    }
 
     if ('dirName' in selectedItem && selectedItem.dirName) {
         await openSelectedDirectory(join(cwd, selectedItem.dirName), forceOpenNewWindow)

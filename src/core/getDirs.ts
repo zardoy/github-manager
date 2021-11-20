@@ -105,6 +105,8 @@ export async function* getDirectoriesToShow({
 
     /** history holds repos slug */
     const history: string[] | undefined = getExtensionSetting('boostRecentlyOpened') ? extensionCtx.globalState.get('lastGithubRepos') ?? [] : undefined
+    if (history) console.log('Got history of last opened repos', history)
+
     yield { history }
 
     if (selectedDirs.github || selectedDirs['non-remote']) {
