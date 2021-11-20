@@ -10,9 +10,9 @@
     ],
     "keywords": [
         "offline",
-        "folder",
-        "local",
-        "switch",
+        "git",
+        "cloned",
+        "repositories",
         "open"
     ],
     "activationEvents": [
