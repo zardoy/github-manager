@@ -4,7 +4,7 @@
 - Highly configurable. A lot of sorting settings
 - Syncable history of recently opened repos
 
-There are two main commands: `Open GitHub Repository...` and `Open Cloned GitHub Repository...`. Both are using sync-ignored setting as path to directory where all your cloned repositories live (more below). The first command uses integration with your GitHub account and lists all remote and cloned repos (I call it *remote* command). Here is an example:
+There are two main commands: `Open GitHub Repository...` and `Open Cloned GitHub Repository...`. Both are using sync-ignored setting: path to directory where all your cloned repositories live (more below). The first command uses integration with your GitHub account and lists all remote and cloned repos (I call it *remote* command). Here is an example:
 
 ![Github Manager open-repository-command](media/demo-open-repository.png)
 
@@ -17,23 +17,27 @@ Cloned repos that are not listed as your GitHub repo have different octokit icon
 ![Github Manager foreign repos](media/demo-foreign-repos.png)
 
 > Note 1: It uses `repo` scope with authentication, but only to read list of your private repos.
+>
 > Note 2: This extension won't detect repos names, they will just appear on bottom. If you know that some of your repositories were renamed (or their ownership were changed) use [rename-repos](https://github.com/zardoy/rename-repos)'s script to update *origins*.
-> Note 3: if you have repos with the same origin, (perhaps you duplicated cloned directory repository), only first (random) one will be shown as yours and another one will be shown as foreign. It's recommended to remove duplicated directories in these cases.
+>
+> Note 3: This is the fastest way to search and/or clone your repositories. I highly recommend to bind it to some key and use whenever you create new repo or want to search for old repo.
+>
+> Note 4 (rare case): if you have repos with the same origin, (perhaps you duplicated cloned directory repository), only first (random) one will be shown as yours and another one will be shown as foreign. It's recommended to remove duplicated directories in these cases.
 
 When cloning repository, if its' size is over *50 MB*, you will see this dialog:
 
 ![Github Manager big repository shallow clone suggestion](media/demo-big-repo.png)
 
-Also, you have 3 buttons to the right of title (*Select repository to open*). Select desired repository with arrow keys (it's not possible with mouse) and click:
+Also, you have 3 buttons to the right of title (*Select repository to open*). Select desired repository with arrow keys (it's not possible with mouse) and click the icon:
 
 - Folder icon: to reveal cloned repo in Explorer/Finder
-- Globe icon: to open main GitHub repository page
+- Globe icon: to open repo on GitHub
 
 And there is one global button, that toggles visibility of forks, that have 3 states: visible (*default*), only or hidden.
 
 ---
 
-But your primary command will be `Open Cloned GitHub Repository...` as it is fast and doesn't require internet connection. It is like the command above, but doesn't display remote repos (those with globe icon).
+But your primary command will be `Open Cloned GitHub Repository...` as it is fast and doesn't require internet connection. It is like the command above, but display only all cloned repos (those with globe icon). I highly recommend to bind it to some key.
 
 You can even use this extension freely without authentication (or even forcefully disable authentication via setting).
 
