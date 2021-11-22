@@ -52,10 +52,16 @@ export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerat
         // eslint-disable-next-line no-await-in-loop
         const responseData = await graphql<any>(
             `
-                query someRepos($orderByField: RepositoryOrderField!, $endCursor: String, $affiliations: [RepositoryAffiliation], $privacy: RepositoryPrivacy) {
+                query someRepos(
+                    $first: Int!
+                    $orderByField: RepositoryOrderField!
+                    $endCursor: String
+                    $affiliations: [RepositoryAffiliation]
+                    $privacy: RepositoryPrivacy
+                ) {
                     viewer {
                         repositories(
-                            first: 100
+                            first: $first
                             after: $endCursor
                             orderBy: { field: $orderByField, direction: DESC }
                             affiliations: $affiliations
@@ -78,6 +84,7 @@ export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerat
                 }
             `,
             {
+                first: i === 1 ? 12 : 100,
                 orderByField: orderBy,
                 endCursor: nextCursor,
                 affiliations,
@@ -97,6 +104,7 @@ export async function* getAllGithubRepos(abortSignal: AbortSignal): AsyncGenerat
             console.warn('Listing not all repositories. Limit in 1k repos exceeded')
             break
         }
+
         if (responseData.viewer.repositories.pageInfo.hasNextPage) nextCursor = responseData.viewer.repositories.pageInfo.endCursor
         else break
     }
