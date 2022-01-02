@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/no-await-expression-member */
+/* eslint-disable sonarjs/no-duplicate-string */
 import { join } from 'path'
 import vscode from 'vscode'
 import { extensionCtx, getExtensionSetting, GracefulCommandError, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
