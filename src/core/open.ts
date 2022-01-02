@@ -193,7 +193,7 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     }
 
     if (history && selectedItem.repoSlug) {
-        const newLastOpenedRepos = [...history.slice(0, HISTORY_ITEMS_LIMIT - 1), selectedItem.repoSlug]
+        const newLastOpenedRepos = [...new Set([selectedItem.repoSlug, ...history.slice(-HISTORY_ITEMS_LIMIT + 1).reverse()])].reverse()
         await extensionCtx.globalState.update('lastGithubRepos', newLastOpenedRepos)
         console.log('Updated history of last opened repos', newLastOpenedRepos)
     }
