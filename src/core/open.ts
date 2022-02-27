@@ -4,7 +4,7 @@ import { join } from 'path'
 import vscode from 'vscode'
 import { extensionCtx, getExtensionSetting, GracefulCommandError, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
 import execa from 'execa'
-import createStore from 'zustand/vanilla'
+import { proxy, subscribe } from 'valtio/vanilla'
 import { Except } from 'type-fest'
 import { AbortController } from 'abortcontroller-polyfill/dist/cjs-ponyfill.js'
 import fileSize from 'filesize'
@@ -50,34 +50,58 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     // TODO vscode-extra: refactor with first arg promise
     const quickPick = vscode.window.createQuickPick<VSCodeQuickPickItem<ItemType>>()
     quickPick.busy = true
-    quickPick.title = quickPickOptions.title
+    Object.assign(quickPick, quickPickOptions)
     quickPick.matchOnDescription = true
-    const buttonsState = createStore(() => ({
+    // quickPick.keepScrollPosition = true
+    const buttonsState = proxy({
         // setting the actual value later to invoke the subscriber
-        showForks: true as Options['args']['initiallyShowForks'],
-    }))
+        showForks: initiallyShowForks,
+    })
 
     /** Items without filter */
     let sourceItems: DirectoryDisplayItem[] = []
+    type ItemButton = vscode.QuickInputButton & {
+        click(item)
+    }
+
     // TODO into state
     const triggerItemsUpdate = () => {
         // Do not reset selected index to the start
         // This should be default behavior...
         const activeItemSlug = quickPick.activeItems[0]?.value.repoSlug
         quickPick.items = sourceItems
-            .map(({ displayName, description, ...value }) => {
+            .map(({ displayName, description, ...value }): VSCodeQuickPickItem<ItemType> => {
                 // TODO more clean solution
                 const isFork = description?.includes('$(repo-forked)')
-                const showForksState = buttonsState.getState().showForks
+                const showForksState = buttonsState.showForks
                 if (isFork && showForksState === false) return undefined!
                 if (!isFork && showForksState === 'only') return undefined!
                 if (notClonedOnly && !displayName.includes('$(globe)')) return undefined!
                 if (ownerFilter && value.repoSlug && !value.repoSlug.startsWith(`${ownerFilter}/`)) return undefined!
 
+                const itemButtons: ItemButton[] = []
+                if (value.repoSlug)
+                    itemButtons.push({
+                        iconPath: new vscode.ThemeIcon('globe'),
+                        tooltip: 'Open at GitHub',
+                        async click() {
+                            await vscode.env.openExternal(`https://github.com/${value.repoSlug!}` as any)
+                        },
+                    })
+                if ('dirName' in value && value.dirName)
+                    itemButtons.push({
+                        iconPath: new vscode.ThemeIcon('folder'),
+                        tooltip: `Reveal in ${process.platform === 'darwin' ? 'finder' : 'explorer'}`,
+                        async click() {
+                            await vscode.env.openExternal(vscode.Uri.file(join(cwd, value.dirName)))
+                        },
+                    })
+
                 return {
                     label: displayName,
                     value,
                     description,
+                    buttons: itemButtons,
                 }
             })
             .filter(a => a !== undefined)
@@ -85,14 +109,12 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
         if (newActiveItem) quickPick.activeItems = [newActiveItem]
     }
 
-    type QuickPickButton = vscode.QuickInputButton & { action: 'toggle-forks-visibility' | 'open-github' | 'reveal-in-explorer' }
-
-    buttonsState.subscribe(state => {
+    const updateButtonsState = () => {
         const getButtonIcon = (variant: string) =>
             Object.fromEntries(
                 ['dark', 'light'].map(type => [type, vscode.Uri.file(extensionCtx.asAbsolutePath(`./resources/quickpick-icons/${variant}/${type}.svg`))]),
             )
-        const stateButtons: Record<`${typeof state['showForks']}`, vscode.QuickInputButton> = {
+        const stateButtons: Record<`${typeof buttonsState['showForks']}`, vscode.QuickInputButton> = {
             true: {
                 iconPath: new vscode.ThemeIcon('repo-forked'),
                 tooltip: 'Forks are visible',
@@ -106,44 +128,23 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
                 tooltip: 'Only forks are visible',
             },
         }
-        // TODO hide them
-        const quickPickButtons: QuickPickButton[] = [
-            {
-                iconPath: new vscode.ThemeIcon('folder'),
-                // no web target
-                tooltip: `Reveal in ${process.platform === 'darwin' ? 'finder' : 'explorer'}`,
-                action: 'reveal-in-explorer',
-            },
-        ]
-        if (Object.keys(selectedDirs).includes('github'))
-            quickPickButtons.push(
-                {
-                    iconPath: new vscode.ThemeIcon('globe'),
-                    tooltip: 'Open on GitHub',
-                    action: 'open-github',
-                },
-                { ...stateButtons[String(state.showForks)], action: 'toggle-forks-visibility' },
-            )
-        quickPick.buttons = quickPickButtons
-    })
-    buttonsState.setState({ showForks: initiallyShowForks })
+        quickPick.buttons = [{ ...stateButtons[String(buttonsState.showForks)], action: 'toggle-forks-visibility' }]
+    }
+
+    updateButtonsState()
+    subscribe(buttonsState, updateButtonsState)
+
     // quickPick.ignoreFocusOut = true
-    //@ts-expect-error TODO
-    quickPick.onDidTriggerButton(async (button: QuickPickButton) => {
-        const { action } = button
-        if (action === 'open-github' || action === 'reveal-in-explorer') {
-            const activeItem = quickPick.activeItems[0]
-            if (!activeItem) return
-            if (action === 'open-github' && activeItem.value.repoSlug)
-                await vscode.env.openExternal(vscode.Uri.parse(`https://github.com/${activeItem.value.repoSlug}`))
-            else if (action === 'reveal-in-explorer' && 'dirName' in activeItem.value)
-                await vscode.env.openExternal(vscode.Uri.file(join(cwd, activeItem.value.dirName)))
-        } else {
-            const statesCycle = [true, 'only', false] as Array<Options['args']['initiallyShowForks']>
-            buttonsState.setState(({ showForks }) => ({
-                showForks: statesCycle[statesCycle.indexOf(showForks) + 1] ?? statesCycle[0],
-            }))
-            triggerItemsUpdate()
+    quickPick.onDidTriggerButton(() => {
+        // we have only one filter button
+        const statesCycle = [true, 'only', false] as Array<Options['args']['initiallyShowForks']>
+        buttonsState.showForks = statesCycle[statesCycle.indexOf(buttonsState.showForks) + 1] ?? statesCycle[0]
+        triggerItemsUpdate()
+    })
+    quickPick.onDidTriggerItemButton(({ item, button: triggeredButton }) => {
+        for (const itemButton of item.buttons! as ItemButton[]) {
+            if (itemButton !== triggeredButton) continue
+            itemButton.click(item)
         }
     })
 
