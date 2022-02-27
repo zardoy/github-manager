@@ -80,9 +80,9 @@ We don't apply sorting for repos that you don't have access.
 - Every open command:
   - `owner` to display repos only from that user (but note, that user still can be ignored)
   - `showForks` Initial state of *toggle forks visibility* button. Can be: `false` (default), `true` or `"only"`
-- For `githubManager.openGithubRepository`: `notClonedOnly: true` to display only not-cloned repos that
+- For `githubManager.openGithubRepository`: `notClonedOnly: true` to display only not-cloned repos
 
-Example:
+Example for `keybindings.json`:
 
 ```json
 {
@@ -103,6 +103,10 @@ It would show only forked not-cloned repos that you have access to (perhaps coll
 [GitHub Repositories](https://marketplace.visualstudio.com/items?itemName=GitHub.remotehub) might be better for simple text editing, as it opens your repository instantly, without using *clone*. Also with this extension you don't need to worry about pushing/pulling anything, as you work with your repository "online".
 
 Also, there is [GitHub Codespaces](https://marketplace.visualstudio.com/items?itemName=GitHub.codespaces) for cloud development, which might become more convenient for your day-to-day workflow.
+
+## Other Similar Extensions
+
+- [GitHub Repository Manager](https://marketplace.visualstudio.com/items?itemName=henriqueBruno.github-repository-manager) - similar idea but with side-panel, instead of Quick Pick. Less configurable, uses different API for fetching repos. Shows local repositories that have changes.
 
 ## Open at GitHub
 

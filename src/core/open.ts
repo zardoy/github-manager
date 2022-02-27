@@ -30,9 +30,8 @@ type Options = Pick<GetDirsParams, 'selectedDirs' | 'openWithRemotesCommand' | '
     }
 }
 
-const HISTORY_ITEMS_LIMIT = 30
-
 /** `getDirectoriesToShow` wrapper with more vscode API quickPick with handlining opening */
+// eslint-disable-next-line complexity
 export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWithRemotesCommand, selectedDirs }: Options) => {
     const { initiallyShowForks, notClonedOnly, ownerFilter } = args
     const whereToOpen = getExtensionSetting('whereToOpen')
@@ -196,7 +195,8 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     }
 
     if (history && selectedItem.repoSlug) {
-        const newLastOpenedRepos = [...new Set([selectedItem.repoSlug, ...history.slice(-HISTORY_ITEMS_LIMIT + 1).reverse()])].reverse()
+        const lastOpenedItemsLimit = getExtensionSetting('lastOpenedItemsLimit')
+        const newLastOpenedRepos = [...new Set([selectedItem.repoSlug, ...history.slice(-lastOpenedItemsLimit + 1).reverse()])].reverse()
         await extensionCtx.globalState.update('lastGithubRepos', newLastOpenedRepos)
         console.log('Updated history of last opened repos', newLastOpenedRepos)
     }
@@ -205,9 +205,9 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
         await openSelectedDirectory(join(cwd, selectedItem.dirName), forceOpenNewWindow)
     } else if (selectedItem.type === 'remote') {
         let shallowClone = false
-        const REPO_SIZE_THRESHOLD_KB = 50 * 1024 // 50 MB
         const { repoSlug, diskUsage } = selectedItem
-        if (diskUsage > REPO_SIZE_THRESHOLD_KB) {
+        const repoSizeThreshold = getExtensionSetting('repoSizeThreshold')
+        if (repoSizeThreshold !== 0 && diskUsage > repoSizeThreshold) {
             const response = await vscode.window.showWarningMessage(
                 'Cloning repository is big',
                 { modal: true, detail: `${repoSlug} size on GitHub is ${fileSize(diskUsage * 1024)}. Use shallow clone (--depth=1)?` },
@@ -222,15 +222,14 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
         try {
             const [owner, name] = repoSlug.split('/')
             const cloneDirName = getExtensionSetting('onlineRepos.clonedDirFormat') === 'repoOwner_repoName' ? `${owner}_${name}` : name
-            await vscode.window.withProgress(
-                { location: vscode.ProgressLocation.Notification, title: `Cloning ${cloneUrl}`, cancellable: true },
-                async (_, token) => {
-                    // TODO show progress
-                    const process = execa('git', ['clone', cloneUrl, cloneDirName, ...(shallowClone ? ['--depth=1'] : [])], { cwd })
-                    token.onCancellationRequested(() => process.kill())
-                    await process
-                },
-            )
+            let title = `Cloning ${cloneUrl}`
+            if (shallowClone) title += ' (--depth=1)'
+            await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title, cancellable: true }, async (_, token) => {
+                // TODO show progress
+                const process = execa('git', ['clone', cloneUrl, cloneDirName, ...(shallowClone ? ['--depth=1'] : [])], { cwd })
+                token.onCancellationRequested(() => process.kill())
+                await process
+            })
             await openSelectedDirectory(join(cwd, cloneDirName), forceOpenNewWindow)
         } catch (error) {
             throw new GracefulCommandError(`Failed to clone ${cloneUrl}: ${error.message}`, { modal: true })
