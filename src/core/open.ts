@@ -1,8 +1,17 @@
 /* eslint-disable unicorn/no-await-expression-member */
 /* eslint-disable sonarjs/no-duplicate-string */
 import { join } from 'path'
-import vscode from 'vscode'
-import { extensionCtx, getExtensionSetting, GracefulCommandError, showQuickPick, VSCodeQuickPickItem } from 'vscode-framework'
+import * as vscode from 'vscode'
+import {
+    extensionCtx,
+    getExtensionContributionsPrefix,
+    getExtensionSetting,
+    GracefulCommandError,
+    registerExtensionCommand,
+    RegularCommands,
+    showQuickPick,
+    VSCodeQuickPickItem,
+} from 'vscode-framework'
 import execa from 'execa'
 import { proxy, subscribe } from 'valtio/vanilla'
 import { Except } from 'type-fest'
@@ -148,6 +157,7 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     })
 
     quickPick.show()
+    await vscode.commands.executeCommand('setContext', 'github-manager.inQuickPick', true)
     const abortController = new AbortController()
 
     const dirsGenerator = getDirectoriesToShow({
@@ -160,17 +170,32 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
 
     // copied from vscode-extra
     const selectedItem = await new Promise<ItemType | undefined>(resolve => {
-        quickPick.onDidHide(() => {
-            resolve(undefined)
-            quickPick.dispose()
-        })
-        quickPick.onDidAccept(() => {
+        const acceptCurrent = () => {
             // align with default showQuickPick behavior
             if (quickPick.items.length === 0) return
-            const { selectedItems } = quickPick
-            resolve(selectedItems[0]?.value)
+            const { activeItems } = quickPick
+            resolve(activeItems[0]?.value)
             quickPick.hide()
+        }
+
+        const registerCommand = (command: keyof RegularCommands, handler: () => void) =>
+            vscode.commands.registerCommand(`${getExtensionContributionsPrefix()}${command}`, handler)
+        const commandsDisposable = vscode.Disposable.from(
+            registerCommand('forceOpenInNewWindow', () => {
+                forceOpenNewWindow = true
+                acceptCurrent()
+            }),
+            registerCommand('forceOpenInTheSameWindow', () => {
+                forceOpenNewWindow = false
+                acceptCurrent()
+            }),
+        )
+        quickPick.onDidHide(() => {
+            resolve(undefined)
+            commandsDisposable.dispose()
+            quickPick.dispose()
         })
+        quickPick.onDidAccept(acceptCurrent)
 
         console.time('Get all directories')
         void (async () => {
@@ -186,6 +211,7 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
     })
     abortController.abort()
     console.timeEnd('Get all directories')
+    await vscode.commands.executeCommand('setContext', 'github-manager.inQuickPick', false)
     if (!selectedItem) return
 
     if (forceOpenNewWindow === undefined && whereToOpen === 'ask(after)') {
@@ -241,10 +267,12 @@ export const cloneOrOpenDirectory = async ({ cwd, quickPickOptions, args, openWi
 
 export const isWindowEmpty = () => {
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) return false
-    // TODO migrate to tabs API when available
-    const visibleTextEditors = vscode.window.visibleTextEditors.filter(({ viewColumn }) => viewColumn !== undefined)
-    // suppose no opened tabs
-    return visibleTextEditors.length === 0
+    const windowEmpty =
+        vscode.window.tabGroups.all.reduce((sum, tabs) => sum + tabs.tabs.length, 0) ||
+        vscode.window.tabGroups.all.every(item =>
+            item.tabs.every(tab => tab.label.match(/Untitled-\d+/) && (tab.input as any).uri.toString().match(/untitled:Untitled-\d+/)),
+        )
+    return windowEmpty
 }
 
 export const openSelectedDirectory = async (dirPath: string, forceOpenNewWindow?: boolean) => {

@@ -66,4 +66,4 @@ export async function activate() {
     })
 }
 
-export type OpenCommands = keyof Except<RegularCommands, 'openAtGithub'>
+export type OpenCommands = keyof Except<RegularCommands, 'openAtGithub' | 'forceOpenInNewWindow' | 'forceOpenInTheSameWindow'>

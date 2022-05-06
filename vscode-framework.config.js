@@ -1,7 +1,10 @@
 //@ts-check
+const { defineConfig } = require('@zardoy/vscode-utils/build/defineConfig.cjs')
+const { patchPackageJson } = require('@zardoy/vscode-utils/build/patchPackageJson.cjs')
 
-/** @type{import('vscode-framework/build/config').UserConfig} */
-const config = {
+// patchPackageJson({})
+
+module.exports = defineConfig({
     esbuild: {
         keepNames: true,
     },
@@ -9,6 +12,4 @@ const config = {
         desktop: true,
         web: false,
     },
-}
-
-module.exports = config
+})
