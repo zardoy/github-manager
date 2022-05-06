@@ -223,7 +223,7 @@
         "@types/ini": "^1.3.31",
         "@types/url-join": "^4.0.1",
         "@zardoy/tsconfig": "^1.2.2",
-        "@zardoy/vscode-utils": "^0.0.5",
+        "@zardoy/vscode-utils": "^0.0.6",
         "abortcontroller-polyfill": "^1.7.3",
         "esbuild-runner": "^2.2.1",
         "execa": "^5.1.1",
