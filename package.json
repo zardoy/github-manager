@@ -4,7 +4,7 @@
     "publisher": "zardoy",
     "description": "THE FASTEST way to switch between cloned GitHub repos",
     "icon": "resources/icon.png",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "categories": [
         "Other"
     ],
@@ -143,6 +143,18 @@
                     ],
                     "description": "Format to use for cloning directory name",
                     "default": "repoName"
+                },
+                "lastOpenedItemsLimit": {
+                    "type": "number",
+                    "markdownDescription": "Has effect only when `boostRecentlyOpened` is on",
+                    "default": 30,
+                    "minimum": 1
+                },
+                "repoSizeThreshold": {
+                    "type": "number",
+                    "markdownDescription": "Size in *kilobytes* after which display warning message with suggestion to use shallow clone.\nSet to `0` to disable this feature.\nDefault is 50mb (50 * 1024)",
+                    "default": 51200,
+                    "minimum": 0
                 }
             }
         }
@@ -169,20 +181,20 @@
         "@types/node": "17.0.6",
         "@types/react": "^17.0.38",
         "@types/react-dom": "^17.0.11",
-        "@types/vscode": "^1.63.1",
+        "@types/vscode": "^1.64.0",
         "@vscode/test-electron": "^2.0.1",
         "babel-jest": "^27.4.5",
         "delay": "^5.0.0",
         "esbuild": "^0.14.10",
-        "eslint": "^8.6.0",
-        "eslint-config-zardoy": "^0.2.5",
+        "eslint": "^8.10.0",
+        "eslint-config-zardoy": "^0.2.10",
         "fs-extra": "^10.0.0",
         "jest": "^27.4.5",
         "modify-json-file": "^1.2.2",
         "ts-jest": "^27.1.2",
         "tsm": "^2.2.1",
-        "type-fest": "^2.8.0",
-        "typescript": "^4.5.4",
+        "type-fest": "^2.12.0",
+        "typescript": "^4.5.5",
         "vscode-test": "^1.6.1"
     },
     "dependencies": {
@@ -194,16 +206,16 @@
         "abortcontroller-polyfill": "^1.7.3",
         "esbuild-runner": "^2.2.1",
         "execa": "^5.1.1",
-        "filesize": "^8.0.6",
+        "filesize": "^8.0.7",
         "find-up": "^6.2.0",
         "github-remote-info": "^1.0.3",
-        "hosted-git-info": "^4.0.2",
+        "hosted-git-info": "^4.1.0",
         "ini": "^2.0.0",
         "lodash": "^4.17.21",
-        "read-pkg": "^7.0.0",
+        "read-pkg": "^7.1.0",
         "url-join": "^4.0.1",
-        "vscode-framework": "^0.0.18",
-        "zustand": "^3.6.8"
+        "valtio": "^1.3.0",
+        "vscode-framework": "^0.0.18"
     },
     "license": "MIT"
 }

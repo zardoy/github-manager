@@ -1,8 +1,8 @@
+import vscode from 'vscode'
 import GitHost, { fromUrl } from 'hosted-git-info'
 import urlJoin from 'url-join'
 import { CommandHandler, getCurrentWorkspace, GracefulCommandError } from 'vscode-framework'
 import ini from 'ini'
-import vscode from 'vscode'
 
 export const openAtGithub: CommandHandler = async (_, { path = '', remoteName = 'origin' }: { path?: string; remoteName?: string } = {}) => {
     const workspaceRemoteMap = new Map<number, GitHost>() // workspace.index - remote url
@@ -38,5 +38,5 @@ export const openAtGithub: CommandHandler = async (_, { path = '', remoteName = 
 
     const remoteUrl = workspaceRemoteMap.get(selectedWorkspace.index)!
 
-    await vscode.env.openExternal(vscode.Uri.parse(urlJoin(remoteUrl.browse(), path)))
+    await vscode.env.openExternal(urlJoin(remoteUrl.browse(), path) as any)
 }
